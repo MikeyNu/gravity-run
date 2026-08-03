@@ -27,10 +27,10 @@
 | Courier character | Missing | Procedural capsule proxy only | Final model, topology, UVs, materials, rig, sockets, IK and animation set. |
 | Environment kit | Missing | Floor and box proxies only | Modular city kit, landmarks, midground/distant sets, collision and occlusion proxies, trim/decal library. |
 | Hazards and pickups | Partial | Box and octahedron proxies | Authored spinner, blades, debris, gates, fragments and state-specific VFX. |
-| VFX | Partial | Tension-aware ribbon tether, deterministic trail and speed-line field | Release burst, impact, collapse, near-miss and pooled particle systems. |
-| Audio | Missing | None | Music states, one-shot families, tether/orbit loops, UI, mix snapshots and accessibility controls. |
+| VFX | Partial | Tension-aware ribbon tether, deterministic trail, speed lines, and pooled release/collect/near-miss/failure bursts | Collapse field refinement, scrape/impact variants and authored environmental particles. |
+| Audio | Partial | Deterministic UI, tether, release, fragment, near-miss and failure assets with Web Audio routing | Music states, ambience, broader variation pools, mix snapshots and device listening certification. |
 | UI shell | Partial | Concept-matched menu, HUD, pause and settings | Tutorial progression, results detail, character selection, daily flow, leaderboard and responsive visual QA. |
-| Accessibility | Partial | Reduced motion and keyboard-safe controls | Remapping, audio controls, high contrast, text scale, haptics control and screen-reader flow. |
+| Accessibility | Partial | Reduced motion, keyboard-safe controls, master volume and mute | Remapping, high contrast, text scale, haptics control and screen-reader flow. |
 | Online services | Missing | Minimal API shell only | Persistent storage, challenge service, replay validation, leaderboards, rate limits and observability. |
 | PWA and streaming | Partial | Web manifest | Service worker, cache versioning, offline replay queue, staged asset loading and context-loss recovery. |
 | Performance certification | Blocked | Tiered LOD and QA budgets | Resolved production build, GPU timing, mobile thermal tests, memory captures and device matrix. |

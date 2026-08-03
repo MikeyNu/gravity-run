@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { AudioDirector } from '../audio/AudioDirector';
 import {
   movementConfig,
   qualityProfiles,
@@ -11,6 +12,7 @@ import { SpringCameraRig } from './camera/SpringCameraRig';
 import { PostProcessingPipeline } from './pipeline/PostProcessingPipeline';
 import { AdaptiveResolutionController } from './quality/AdaptiveResolutionController';
 import type { QualityTier } from './quality/detectQualityTier';
+import { ParticleBurstPool } from './vfx/ParticleBurstPool';
 import { PlayerTrail } from './vfx/PlayerTrail';
 import { SpeedLineField } from './vfx/SpeedLineField';
 import { TetherRibbon } from './vfx/TetherRibbon';
@@ -42,6 +44,8 @@ export class ThreeScene implements PresentationPort {
   readonly #tether = new TetherRibbon();
   readonly #trail = new PlayerTrail();
   readonly #speedLines: SpeedLineField;
+  readonly #eventParticles: ParticleBurstPool;
+  readonly #audio = new AudioDirector();
   readonly #collapse: THREE.Mesh<THREE.PlaneGeometry, THREE.MeshBasicMaterial>;
   readonly #wellAssets: WellAssetLibrary;
   readonly #targetPosition = new THREE.Vector3();
@@ -51,6 +55,7 @@ export class ThreeScene implements PresentationPort {
   #width = 1;
   #height = 1;
   #pixelRatio: number;
+  #lastPresentationTick = -1;
 
   constructor(host: HTMLElement, quality: QualityTier) {
     this.#host = host;
@@ -91,6 +96,10 @@ export class ThreeScene implements PresentationPort {
       quality === 'compatibility' ? 18 : quality === 'mobile' ? 42 : quality === 'desktop' ? 78 : 112,
     );
     this.#scene.add(this.#speedLines.object);
+    this.#eventParticles = new ParticleBurstPool(
+      quality === 'compatibility' ? 96 : quality === 'mobile' ? 160 : quality === 'desktop' ? 240 : 320,
+    );
+    this.#scene.add(this.#eventParticles.object);
 
     this.#collapse = new THREE.Mesh(
       new THREE.PlaneGeometry(90, 90),
@@ -179,6 +188,9 @@ export class ThreeScene implements PresentationPort {
       current.playerSpeed,
       reducedMotion,
     );
+    this.#processPresentationEvents(previous, current);
+    this.#eventParticles.update(frameDelta);
+    this.#audio.update(previous, current);
 
     this.#collapse.position.set(current.collapseX, 3, 0);
     this.#collapse.material.opacity = THREE.MathUtils.clamp(
@@ -206,6 +218,8 @@ export class ThreeScene implements PresentationPort {
     this.#tether.dispose();
     this.#trail.dispose();
     this.#speedLines.dispose();
+    this.#eventParticles.dispose();
+    this.#audio.dispose();
     this.#wellAssets.dispose();
     this.#scene.traverse((object) => {
       if (
@@ -222,6 +236,34 @@ export class ThreeScene implements PresentationPort {
     });
     this.#renderer.dispose();
     this.#renderer.domElement.remove();
+  }
+
+  #processPresentationEvents(previous: SimulationSnapshot, current: SimulationSnapshot): void {
+    if (current.tick < this.#lastPresentationTick) {
+      this.#lastPresentationTick = current.tick;
+      this.#eventParticles.reset();
+      return;
+    }
+    if (current.tick === this.#lastPresentationTick) return;
+    this.#lastPresentationTick = current.tick;
+
+    if (previous.phase !== 'released' && current.phase === 'released') {
+      this.#eventParticles.emit(
+        'release',
+        this.#interpolatedPosition,
+        this.#velocity,
+        current.lastReleaseGrade,
+      );
+    }
+    if (current.fragments > previous.fragments) {
+      this.#eventParticles.emit('fragment', this.#interpolatedPosition, this.#velocity);
+    }
+    if (current.nearMisses > previous.nearMisses) {
+      this.#eventParticles.emit('near-miss', this.#interpolatedPosition, this.#velocity);
+    }
+    if (previous.phase !== 'failed' && current.phase === 'failed') {
+      this.#eventParticles.emit('failure', this.#interpolatedPosition, this.#velocity);
+    }
   }
 
   #resizeTargets(): void {

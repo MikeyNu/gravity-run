@@ -17,6 +17,8 @@ The repository contains a deterministic gameplay vertical slice, a concept-align
 - tiered HDR post-processing with final AgX tone mapping;
 - adaptive render scale with hysteresis and quality-profile floors;
 - tension-aware tether ribbon, deterministic player trail, and speed-line field;
+- pooled release, fragment, near-miss, and failure particle bursts;
+- deterministic generated gameplay audio with Web Audio event routing and master controls;
 - deterministic instanced skyline, debris, and distant singularity dressing;
 - title, pause, results and reduced-motion settings shell;
 - project-owned SVG logo, character, instructional and icon systems;
@@ -31,7 +33,7 @@ The rejected low-detail one-file-per-card SVG placeholders were removed. The rep
 - authored 3D Courier model, rig, LODs and animation graph;
 - art-directed refinement and compressed production packaging of the gravity-well family;
 - modular city environment meshes, trim sheets, lightmaps, collision and occlusion proxies;
-- full VFX and Web Audio event systems;
+- authored music, ambience, expanded sound-variation pools, and remaining event VFX;
 - tutorial progression, character selection, daily service, leaderboard and ghost flows;
 - KTX2 and meshopt compression pass;
 - full browser build, visual regression, performance, mobile thermal, accessibility and replay-validation certification.
@@ -44,4 +46,7 @@ The rejected low-detail one-file-per-card SVG placeholders were removed. The rep
 - runtime asset-reference checks;
 - shared-resource ownership review;
 - input isolation and pause/resume lifecycle review;
-- explicit architecture gap audit.
+- explicit architecture gap audit;
+- bit-for-bit deterministic audio regeneration across eight assets;
+- mono/sample-rate/bit-depth, clipping, DC-offset, duration, and transfer-budget checks;
+- pooled presentation-event review to prevent repeated render-frame triggers.

@@ -37,6 +37,16 @@
       "requiredForCoreLoad": false,
       "license": "Project-owned original vector asset",
       "budget": { "transferKilobytes": 30, "gpuMegabytes": 2 }
+    },
+    {
+      "id": "audio/gameplay-feedback-v1",
+      "type": "audio",
+      "source": "tools/asset-authoring/generate_audio_assets.py",
+      "generator": "tools/asset-authoring/generate_audio_assets.py",
+      "runtime": "apps/game/public/assets/audio/",
+      "requiredForCoreLoad": false,
+      "license": "Project-owned original procedural audio",
+      "budget": { "transferKilobytes": 300 }
     }
   ]
 }

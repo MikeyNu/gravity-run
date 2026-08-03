@@ -30,6 +30,11 @@ const comboList = ['PERFECT', 'PERFECT x2', 'PERFECT x3', 'SUPER ORBIT x5', 'GRA
 type ShellScreen = 'menu' | 'playing' | 'paused' | 'settings';
 type IconName = 'mouse' | 'target' | 'risk' | 'infinity' | 'crown' | 'pause';
 
+function readStoredVolume(): number {
+  const value = Number(localStorage.getItem('gravity-run:master-volume') ?? 0.78);
+  return Number.isFinite(value) ? Math.min(Math.max(value, 0), 1) : 0.78;
+}
+
 function SpriteArt({ source, symbol, label, viewBox }: { source: string; symbol: string; label: string; viewBox: string }) {
   return (
     <svg className="sprite-art" viewBox={viewBox} role="img" aria-label={label}>
@@ -51,6 +56,8 @@ export function App() {
   const runtimeRef = useRef<GameRuntime | null>(null);
   const [screen, setScreen] = useState<ShellScreen>('menu');
   const [reducedMotion, setReducedMotion] = useState(() => localStorage.getItem('gravity-run:reduced-motion') === 'true');
+  const [masterVolume, setMasterVolume] = useState(readStoredVolume);
+  const [muted, setMuted] = useState(() => localStorage.getItem('gravity-run:muted') === 'true');
   const phase = useHudStore((state) => state.phase);
   const speed = useHudStore((state) => state.speed);
   const quality = useHudStore((state) => state.quality);
@@ -85,6 +92,14 @@ export function App() {
   }, [reducedMotion]);
 
   useEffect(() => {
+    localStorage.setItem('gravity-run:master-volume', String(masterVolume));
+    localStorage.setItem('gravity-run:muted', String(muted));
+    window.dispatchEvent(new CustomEvent('gravity-run:audio-settings', {
+      detail: { masterVolume, muted },
+    }));
+  }, [masterVolume, muted]);
+
+  useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.code !== 'Escape') return;
       if (screen === 'playing') {
@@ -111,13 +126,17 @@ export function App() {
     };
   }, [screen]);
 
+  const confirmUi = () => window.dispatchEvent(new Event('gravity-run:ui-confirm'));
+
   const startRun = () => {
+    confirmUi();
     runtimeRef.current?.reset();
     runtimeRef.current?.resume();
     setScreen('playing');
   };
 
   const returnToMenu = () => {
+    confirmUi();
     runtimeRef.current?.reset();
     runtimeRef.current?.pause();
     setScreen('menu');
@@ -140,7 +159,7 @@ export function App() {
               <p>A fast paced 3D game where you tether between gravity wells, chase huge combos and escape a collapsing world.</p>
               <div className="hero-actions" data-ui-control>
                 <button className="primary-action" type="button" onClick={startRun}>START RUN</button>
-                <button className="secondary-action" type="button" onClick={() => setScreen('settings')}>SETTINGS</button>
+                <button className="secondary-action" type="button" onClick={() => { confirmUi(); setScreen('settings'); }}>SETTINGS</button>
               </div>
             </header>
 
@@ -219,7 +238,7 @@ export function App() {
           <div className="status-item"><span>FRAGMENTS</span><strong>{fragments}</strong></div>
           <div className="status-item"><span>QUALITY</span><strong>{quality.toUpperCase()}</strong></div>
           <div className="status-item"><span>SPEED</span><strong>{speed.toFixed(1)} m/s</strong></div>
-          <button type="button" className="pause-button" data-ui-control onClick={() => { runtimeRef.current?.pause(); setScreen('paused'); }}>PAUSE</button>
+          <button type="button" className="pause-button" data-ui-control onClick={() => { confirmUi(); runtimeRef.current?.pause(); setScreen('paused'); }}>PAUSE</button>
         </section>
       ) : null}
 
@@ -232,7 +251,7 @@ export function App() {
         <section className="modal-panel panel" role="dialog" aria-modal="true" data-ui-control>
           <span>RUN PAUSED</span><h1>HOLD YOUR LINE.</h1><p>The simulation is frozen. Resume when you are ready.</p>
           <div className="modal-actions">
-            <button className="primary-action" type="button" onClick={() => { runtimeRef.current?.resume(); setScreen('playing'); }}>RESUME</button>
+            <button className="primary-action" type="button" onClick={() => { confirmUi(); runtimeRef.current?.resume(); setScreen('playing'); }}>RESUME</button>
             <button className="secondary-action" type="button" onClick={returnToMenu}>RETURN TO MENU</button>
           </div>
         </section>
@@ -245,8 +264,16 @@ export function App() {
             <span><strong>REDUCED MOTION</strong><small>Disables decorative UI motion and lowers camera presentation intensity.</small></span>
             <input type="checkbox" checked={reducedMotion} onChange={(event) => setReducedMotion(event.target.checked)} />
           </label>
+          <label className="setting-row">
+            <span><strong>MASTER VOLUME</strong><small>Controls all gameplay, interface and ambience output.</small></span>
+            <input className="volume-slider" type="range" min="0" max="1" step="0.01" value={masterVolume} onChange={(event) => setMasterVolume(Number(event.target.value))} />
+          </label>
+          <label className="setting-row">
+            <span><strong>MUTE AUDIO</strong><small>Silences the master bus without changing the saved volume.</small></span>
+            <input type="checkbox" checked={muted} onChange={(event) => setMuted(event.target.checked)} />
+          </label>
           <div className="setting-row static-setting"><span><strong>ACTIVE QUALITY PROFILE</strong><small>Selected automatically from device capability.</small></span><b>{quality.toUpperCase()}</b></div>
-          <div className="modal-actions"><button className="primary-action" type="button" onClick={() => setScreen('menu')}>DONE</button></div>
+          <div className="modal-actions"><button className="primary-action" type="button" onClick={() => { confirmUi(); setScreen('menu'); }}>DONE</button></div>
         </section>
       ) : null}
 

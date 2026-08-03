@@ -1,0 +1,4 @@
+.volume-slider {
+  width: min(210px, 42vw);
+  accent-color: var(--gold);
+}
