@@ -3,6 +3,7 @@ import type { GravityWellClass } from '@gravity-run/game-config';
 import type { PresentationPort } from '../game/core/GameRuntime';
 import type { SimulationSnapshot } from '../game/simulation/types';
 import type { QualityTier } from './quality/detectQualityTier';
+import { WellAssetLibrary } from './assets/WellAssetLibrary';
 
 export class ThreeScene implements PresentationPort {
   readonly #host: HTMLElement;
@@ -13,10 +14,13 @@ export class ThreeScene implements PresentationPort {
   readonly #course = new THREE.Group();
   readonly #tether: THREE.Line<THREE.BufferGeometry, THREE.LineBasicMaterial>;
   readonly #collapse: THREE.Mesh<THREE.PlaneGeometry, THREE.MeshBasicMaterial>;
+  readonly #wellAssets: WellAssetLibrary;
   #signature = '';
 
   constructor(host: HTMLElement, quality: QualityTier) {
     this.#host = host;
+    this.#wellAssets = new WellAssetLibrary(quality);
+    void this.#wellAssets.preload().then(() => { this.#signature = ''; });
     this.#renderer = new THREE.WebGLRenderer({ antialias: quality !== 'compatibility', powerPreference: 'high-performance' });
     this.#renderer.outputColorSpace = THREE.SRGBColorSpace;
     this.#renderer.toneMapping = THREE.AgXToneMapping;
@@ -65,13 +69,21 @@ export class ThreeScene implements PresentationPort {
 
     const targetId = current.activeTargetId ?? current.previewTargetId;
     const target = targetId ? current.wells.find((well) => well.id === targetId) : undefined;
-    const focus = position.clone().add(velocity.multiplyScalar(0.28));
+    const reducedMotion = this.#reducedMotion();
+    const focus = position.clone().add(velocity.multiplyScalar(reducedMotion ? 0.16 : 0.28));
     if (target) focus.lerp(new THREE.Vector3(target.position.x, target.position.y, target.position.z), current.targetLocked ? 0.22 : 0.1);
-    const desiredCamera = position.clone().add(current.targetLocked ? new THREE.Vector3(-9.5, 7.3, 17.5) : new THREE.Vector3(-8.2, 5.8, 15.5));
-    const damping = 1 - Math.exp(-4.8 * frameDelta);
+    const desiredCamera = position.clone().add(
+      reducedMotion
+        ? new THREE.Vector3(-8.6, 6.2, 16.2)
+        : current.targetLocked
+          ? new THREE.Vector3(-9.5, 7.3, 17.5)
+          : new THREE.Vector3(-8.2, 5.8, 15.5),
+    );
+    const damping = 1 - Math.exp(-(reducedMotion ? 7.5 : 4.8) * frameDelta);
     this.#camera.position.lerp(desiredCamera, damping);
     this.#camera.lookAt(focus);
-    this.#camera.fov = THREE.MathUtils.lerp(this.#camera.fov, 50 + Math.min(current.playerSpeed * 0.7, 14), damping);
+    const targetFov = reducedMotion ? 54 : 50 + Math.min(current.playerSpeed * 0.7, 14);
+    this.#camera.fov = THREE.MathUtils.lerp(this.#camera.fov, targetFov, damping);
     this.#camera.updateProjectionMatrix();
 
     const positions = this.#tether.geometry.attributes.position;
@@ -83,6 +95,7 @@ export class ThreeScene implements PresentationPort {
     this.#tether.material.opacity = current.targetLocked && target ? 0.92 : 0;
     this.#collapse.position.set(current.collapseX, 3, 0);
     this.#collapse.material.opacity = THREE.MathUtils.clamp(0.3 - Math.max(position.x - current.collapseX, 0) * 0.006, 0.08, 0.3);
+    this.#animateCourse(frameDelta, current.elapsedSeconds, reducedMotion);
     this.#renderer.render(this.#scene, this.#camera);
   }
 
@@ -96,12 +109,13 @@ export class ThreeScene implements PresentationPort {
 
   dispose(): void {
     this.#scene.traverse((object) => {
-      if (!(object instanceof THREE.Mesh)) return;
+      if (!(object instanceof THREE.Mesh) || object.userData.managedByWellLibrary) return;
       object.geometry.dispose();
       for (const material of Array.isArray(object.material) ? object.material : [object.material]) material.dispose();
     });
     this.#tether.geometry.dispose();
     this.#tether.material.dispose();
+    this.#wellAssets.dispose();
     this.#renderer.dispose();
     this.#renderer.domElement.remove();
   }
@@ -114,9 +128,12 @@ export class ThreeScene implements PresentationPort {
     const collected = new Set(snapshot.collectedFragmentIds);
 
     for (const well of snapshot.wells) {
-      const object = this.#well(well.class);
+      const object = this.#wellAssets.create(well.class) ?? this.#well(well.class);
       object.position.set(well.position.x, well.position.y, well.position.z);
-      object.scale.setScalar(well.physicalRadius / 1.35);
+      object.scale.setScalar(well.physicalRadius / (this.#wellAssets.has(well.class) ? 1.68 : 1.35));
+      object.userData.gravityWell = true;
+      object.userData.phaseOffset = this.#hashPhase(well.id);
+      object.userData.wellClass = well.class;
       this.#course.add(object);
     }
     for (const hazard of snapshot.hazards) {
@@ -180,11 +197,40 @@ export class ThreeScene implements PresentationPort {
     this.#scene.add(floor);
   }
 
+  #animateCourse(frameDelta: number, elapsedSeconds: number, reducedMotion: boolean): void {
+    for (const child of this.#course.children) {
+      if (!child.userData.gravityWell) continue;
+      const phase = Number(child.userData.phaseOffset ?? 0);
+      const classMultiplier = child.userData.wellClass === 'accelerator' ? 1.55 : child.userData.wellClass === 'precision' ? 0.78 : 1;
+      child.rotation.z += frameDelta * (reducedMotion ? 0.08 : 0.34) * classMultiplier;
+      child.rotation.x = reducedMotion ? 0 : Math.sin(elapsedSeconds * 0.72 + phase) * 0.025;
+      const pulse = reducedMotion ? 1 : 1 + Math.sin(elapsedSeconds * 2.1 + phase) * 0.018;
+      child.scale.multiplyScalar(pulse / Number(child.userData.previousPulse ?? 1));
+      child.userData.previousPulse = pulse;
+    }
+  }
+
+  #reducedMotion(): boolean {
+    return (
+      document.documentElement.dataset.reducedMotion === 'true' ||
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    );
+  }
+
+  #hashPhase(value: string): number {
+    let hash = 2166136261;
+    for (let index = 0; index < value.length; index += 1) {
+      hash ^= value.charCodeAt(index);
+      hash = Math.imul(hash, 16777619);
+    }
+    return ((hash >>> 0) / 0xffffffff) * Math.PI * 2;
+  }
+
   #disposeChildren(group: THREE.Group): void {
     for (const child of [...group.children]) {
       group.remove(child);
       child.traverse((object) => {
-        if (!(object instanceof THREE.Mesh)) return;
+        if (!(object instanceof THREE.Mesh) || object.userData.managedByWellLibrary) return;
         object.geometry.dispose();
         for (const material of Array.isArray(object.material) ? object.material : [object.material]) material.dispose();
       });

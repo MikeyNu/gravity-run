@@ -1,36 +1,42 @@
 # Gravity Run implementation status
 
-## Current tranche
+## Current production state
 
-This tranche focuses on presentation parity with the approved concept art while preserving the deterministic gameplay vertical slice already present in the codebase.
+The repository contains a deterministic gameplay vertical slice, a concept-aligned game shell and the first validated 3D asset family. It is not content-complete.
 
-### Completed in this tranche
+## Completed systems
 
-- Reworked the entire HUD and menu shell to match the supplied screenshot more closely.
-- Added a reusable high-resolution SVG brand logo.
-- Added SVG UI icon assets for the control and feature panels.
-- Added five unlockable character portrait placeholders as deterministic vector assets.
-- Added four flow-diagram cards and one daily-challenge route thumbnail as SVG assets.
-- Expanded the HUD store so the UI can show best score, best distance and max combo.
-- Added a top-right score module, left rail, bottom dock, combo panel and challenge card.
-- Preserved the live simulation view underneath the overlay.
+- fixed 60 Hz simulation loop;
+- seeded course generation;
+- analytical gravity-well orbit and release movement;
+- target acquisition and hysteresis;
+- continuous hazard sweeps;
+- score, combo, fragment, near-miss, collapse, failure and replay foundations;
+- responsive Three.js presentation;
+- title, pause, results and reduced-motion settings shell;
+- project-owned SVG logo, character, instructional and icon systems;
+- generated gravity-well family with four variants, three LODs, UVs, PBR maps, collision/occlusion proxies, runtime GLB loading and deterministic QA.
 
-### QA performed
+## Quality correction completed
 
-- Parsed all TypeScript and TSX source files with the TypeScript compiler API to verify there are no syntax errors.
-- Confirmed that all new asset paths referenced by the React application exist on disk.
-- Confirmed that the application structure now mirrors the target screen compositionally:
-  - left narrative rail;
-  - top-right distance module;
-  - bottom flow strip;
-  - combo and daily challenge cards;
-  - character roster strip.
+The rejected low-detail one-file-per-card SVG placeholders were removed. The replacement system uses shared, authored symbol sprites with controlled gradients, filters, accessible labels, consistent material language and much lower duplication. UI controls no longer leak into gameplay input. Shared GLB geometry/materials are no longer destroyed during course streaming.
 
-### Remaining work
+## Current blockers to release
 
-- Replace the temporary SVG portrait cards with final painted or 3D-rendered character art.
-- Replace the temporary SVG flow cards with production-grade instructional illustrations.
-- Add final typography stack and font loading.
-- Improve Three.js scene fidelity toward the key art through particles, skyline layering, tether bloom and better well geometry.
-- Add menu navigation, settings persistence and challenge submission UX.
-- Install dependencies and run a full build once package-registry access is available.
+- authored 3D Courier model, rig, LODs and animation graph;
+- art-directed refinement and compressed production packaging of the gravity-well family;
+- modular city environment meshes, trim sheets, lightmaps, collision and occlusion proxies;
+- full VFX and Web Audio event systems;
+- tutorial progression, character selection, daily service, leaderboard and ghost flows;
+- KTX2 and meshopt compression pass;
+- full browser build, visual regression, performance, mobile thermal, accessibility and replay-validation certification.
+
+## QA performed in this tranche
+
+- deterministic gravity-well regeneration and topology/UV/texture/LOD audit;
+- TypeScript and TSX syntax parsing;
+- SVG/XML and JSON validation;
+- runtime asset-reference checks;
+- shared-resource ownership review;
+- input isolation and pause/resume lifecycle review;
+- explicit architecture gap audit.

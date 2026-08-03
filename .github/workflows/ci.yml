@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches: [main, agent/complete-game]
   pull_request:
 
 permissions:
@@ -11,7 +11,7 @@ permissions:
 jobs:
   validate:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -26,8 +26,21 @@ jobs:
         with:
           node-version: 22
 
-      - name: Install
+      - name: Setup Python asset toolchain
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: requirements-assets.txt
+
+      - name: Install JavaScript dependencies
         run: pnpm install --frozen-lockfile=false
+
+      - name: Install asset-authoring dependencies
+        run: python -m pip install --disable-pip-version-check -r requirements-assets.txt
+
+      - name: Generate and audit runtime assets
+        run: pnpm assets:generate
 
       - name: Typecheck
         run: pnpm typecheck
@@ -35,7 +48,7 @@ jobs:
       - name: Test
         run: pnpm test
 
-      - name: Validate assets
+      - name: Validate asset manifest
         run: pnpm validate:assets
 
       - name: Build

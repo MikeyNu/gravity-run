@@ -10,7 +10,9 @@
     "typecheck": "tsc -b --pretty false",
     "test": "vitest run",
     "test:watch": "vitest",
-    "clean": "rm -rf dist .vite"
+    "clean": "rm -rf dist .vite",
+    "predev": "cd ../.. && python3 tools/asset-authoring/generate_runtime_assets.py",
+    "prebuild": "cd ../.. && python3 tools/asset-authoring/generate_runtime_assets.py"
   },
   "dependencies": {
     "@dimforge/rapier3d-compat": "^0.19.3",
