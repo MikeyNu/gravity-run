@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Mouse icon">
+  <rect x="10" y="6" width="44" height="52" rx="18" fill="#10141d" stroke="#d4d7df" stroke-width="2"/>
+  <path d="M32 8v18" stroke="#d4d7df" stroke-width="2"/>
+  <rect x="27" y="10" width="10" height="16" rx="5" fill="#F5B61B"/>
+</svg>

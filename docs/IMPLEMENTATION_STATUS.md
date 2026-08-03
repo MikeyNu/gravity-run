@@ -1,35 +1,36 @@
 # Gravity Run implementation status
 
-## Implemented vertical slice
+## Current tranche
 
-The `agent/complete-game` branch now contains the first real end-to-end gameplay tranche:
+This tranche focuses on presentation parity with the approved concept art while preserving the deterministic gameplay vertical slice already present in the codebase.
 
-- versioned course, movement and scoring configuration;
-- deterministic seeded course modules;
-- multi-well target acquisition and target hysteresis;
-- analytical orbit and tangent-release movement;
-- bounded per-well acceleration budgets;
-- continuous sphere-versus-AABB hazard sweeps;
-- collapse pressure and explicit failure reasons;
-- fragments, near misses, release grades, score and combo state;
-- replay transition capture and periodic state checksums;
-- expanded HUD, failure presentation and immediate restart;
-- procedural rendering for course wells, hazards, fragments and the collapse plane.
+### Completed in this tranche
 
-## Validation completed
+- Reworked the entire HUD and menu shell to match the supplied screenshot more closely.
+- Added a reusable high-resolution SVG brand logo.
+- Added SVG UI icon assets for the control and feature panels.
+- Added five unlockable character portrait placeholders as deterministic vector assets.
+- Added four flow-diagram cards and one daily-challenge route thumbnail as SVG assets.
+- Expanded the HUD store so the UI can show best score, best distance and max combo.
+- Added a top-right score module, left rail, bottom dock, combo panel and challenge card.
+- Preserved the live simulation view underneath the overlay.
 
-- strict TypeScript validation of shared, configuration and simulation modules;
-- deterministic course equality smoke check;
-- 20-module generated-course smoke check;
-- 1,800-tick simulation smoke run with finite-state assertions;
-- replay checksum generation exercised during the simulation run.
+### QA performed
 
-## Still required for the complete production game
+- Parsed all TypeScript and TSX source files with the TypeScript compiler API to verify there are no syntax errors.
+- Confirmed that all new asset paths referenced by the React application exist on disk.
+- Confirmed that the application structure now mirrors the target screen compositionally:
+  - left narrative rail;
+  - top-right distance module;
+  - bottom flow strip;
+  - combo and daily challenge cards;
+  - character roster strip.
 
-- Rapier-backed scene-query adapter and moving kinematic hazards;
-- deterministic authoritative trigonometry shared with the server validator;
-- full replay submission and leaderboard persistence;
-- title, tutorial, settings, progression and daily challenge flows;
-- production character, animation, audio, environment and texture assets;
-- post-processing quality pipeline and dynamic resolution;
-- browser, device, accessibility and thermal QA.
+### Remaining work
+
+- Replace the temporary SVG portrait cards with final painted or 3D-rendered character art.
+- Replace the temporary SVG flow cards with production-grade instructional illustrations.
+- Add final typography stack and font loading.
+- Improve Three.js scene fidelity toward the key art through particles, skyline layering, tether bloom and better well geometry.
+- Add menu navigation, settings persistence and challenge submission UX.
+- Install dependencies and run a full build once package-registry access is available.
