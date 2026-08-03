@@ -1,0 +1,27 @@
+{
+  "name": "gravity-run",
+  "version": "0.1.0",
+  "private": true,
+  "description": "A deterministic, one-input orbital traversal game built with Three.js.",
+  "engines": {
+    "node": ">=22.16.0",
+    "pnpm": ">=10.0.0"
+  },
+  "scripts": {
+    "dev": "pnpm --filter @gravity-run/game dev",
+    "dev:server": "pnpm --filter @gravity-run/server dev",
+    "build": "pnpm -r --if-present build",
+    "typecheck": "pnpm -r --if-present typecheck",
+    "test": "pnpm -r --if-present test",
+    "test:watch": "pnpm --filter @gravity-run/game test:watch",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "validate:assets": "pnpm --filter @gravity-run/asset-pipeline validate",
+    "clean": "pnpm -r --if-present clean"
+  },
+  "devDependencies": {
+    "@types/node": "^26.1.1",
+    "prettier": "^3.6.2",
+    "typescript": "^7.0.2"
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "version": 1,
+  "assets": [
+    {
+      "id": "character/courier-lod1",
+      "type": "model",
+      "source": "content/source/blender/characters/courier.blend",
+      "runtime": "content/exported/characters/courier-lod1.glb",
+      "requiredForCoreLoad": true,
+      "budget": {
+        "transferKilobytes": 520,
+        "gpuMegabytes": 18
+      }
+    },
+    {
+      "id": "well/standard-lod1",
+      "type": "model",
+      "source": "content/source/blender/wells/standard-well.blend",
+      "runtime": "content/exported/props/standard-well-lod1.glb",
+      "requiredForCoreLoad": true,
+      "budget": {
+        "transferKilobytes": 340,
+        "gpuMegabytes": 10
+      }
+    },
+    {
+      "id": "module/tutorial-orbit",
+      "type": "module",
+      "source": "content/source/blender/modules/tutorial-orbit.blend",
+      "runtime": "content/exported/modules/tutorial-orbit.glb",
+      "requiredForCoreLoad": true,
+      "budget": {
+        "transferKilobytes": 1050,
+        "gpuMegabytes": 32
+      }
+    },
+    {
+      "id": "texture/core-industrial",
+      "type": "texture",
+      "source": "content/source/textures/core-industrial/",
+      "runtime": "content/exported/textures/core-industrial.ktx2",
+      "requiredForCoreLoad": true,
+      "budget": {
+        "transferKilobytes": 780,
+        "gpuMegabytes": 24
+      }
+    },
+    {
+      "id": "audio/core-movement",
+      "type": "audio",
+      "source": "content/source/audio/core-movement/",
+      "runtime": "content/exported/audio/core-movement.opus",
+      "requiredForCoreLoad": true,
+      "budget": {
+        "transferKilobytes": 390
+      }
+    }
+  ]
+}
