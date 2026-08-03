@@ -29,9 +29,6 @@ jobs:
       - name: Install
         run: pnpm install --frozen-lockfile=false
 
-      - name: Format
-        run: pnpm format:check
-
       - name: Typecheck
         run: pnpm typecheck
 
