@@ -13,6 +13,11 @@ The repository contains a deterministic gameplay vertical slice, a concept-align
 - continuous hazard sweeps;
 - score, combo, fragment, near-miss, collapse, failure and replay foundations;
 - responsive Three.js presentation;
+- spring-based velocity-relative camera with stable horizontal framing;
+- tiered HDR post-processing with final AgX tone mapping;
+- adaptive render scale with hysteresis and quality-profile floors;
+- tension-aware tether ribbon, deterministic player trail, and speed-line field;
+- deterministic instanced skyline, debris, and distant singularity dressing;
 - title, pause, results and reduced-motion settings shell;
 - project-owned SVG logo, character, instructional and icon systems;
 - generated gravity-well family with four variants, three LODs, UVs, PBR maps, collision/occlusion proxies, runtime GLB loading and deterministic QA.

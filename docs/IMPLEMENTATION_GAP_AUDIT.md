@@ -21,13 +21,13 @@
 | Collision and failure | Partial | Continuous sphere/AABB sweep, collapse and floor failures | Rapier-backed complex hazards, scrape response, moving hazard sweeps and collision regression corpus. |
 | Scoring and combo | Partial | Distance, fragments, release grades, near misses and combo | Risk-route multipliers, target skips, daily scoring rules and balancing telemetry. |
 | Replay protocol | Partial | Input transitions and periodic checksums | Server reconstruction, version rejection, signed challenge proofs and ghost playback. |
-| Camera and cinematography | Partial | Chase camera, speed FOV and reduced-motion mode | Spring rig, camera collision, orbit-plane framing, shot grammar and replay camera. |
-| Rendering pipeline | Partial | PBR renderer, AgX, fog and quality tiers | Composer pipeline, selective bloom, SMAA, contact shadows, probes and dynamic resolution controller. |
+| Camera and cinematography | Partial | Velocity-relative spring rig, horizontal-FOV normalization, target framing and reduced-motion mode | Camera collision, orbit-plane framing, bounded roll, shot grammar and replay camera. |
+| Rendering pipeline | Partial | Tiered composer, HDR buffers, thresholded bloom, SMAA, final AgX, fog and adaptive resolution | Contact shadows, probes, material audit, GPU profiling and visual-regression certification. |
 | Gravity-well assets | Partial | Four deterministic variants, three LODs, UVs, PBR maps and QA | Art-direct silhouette refinement, KTX2 compression, meshopt pass and in-engine lighting review. |
 | Courier character | Missing | Procedural capsule proxy only | Final model, topology, UVs, materials, rig, sockets, IK and animation set. |
 | Environment kit | Missing | Floor and box proxies only | Modular city kit, landmarks, midground/distant sets, collision and occlusion proxies, trim/decal library. |
 | Hazards and pickups | Partial | Box and octahedron proxies | Authored spinner, blades, debris, gates, fragments and state-specific VFX. |
-| VFX | Missing | Basic emissive materials and tether line | Tether ribbon, release burst, speed streaks, impact, collapse, near-miss and pooled particle systems. |
+| VFX | Partial | Tension-aware ribbon tether, deterministic trail and speed-line field | Release burst, impact, collapse, near-miss and pooled particle systems. |
 | Audio | Missing | None | Music states, one-shot families, tether/orbit loops, UI, mix snapshots and accessibility controls. |
 | UI shell | Partial | Concept-matched menu, HUD, pause and settings | Tutorial progression, results detail, character selection, daily flow, leaderboard and responsive visual QA. |
 | Accessibility | Partial | Reduced motion and keyboard-safe controls | Remapping, audio controls, high contrast, text scale, haptics control and screen-reader flow. |
