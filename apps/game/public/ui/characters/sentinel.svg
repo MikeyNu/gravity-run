@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 220" role="img" aria-label="Sentinel">
+  <defs>
+    <linearGradient id="bg" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0%" stop-color="#192132"/>
+      <stop offset="100%" stop-color="#070a10"/>
+    </linearGradient>
+    <linearGradient id="acc" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0%" stop-color="#8cbcff"/>
+      <stop offset="100%" stop-color="#d7efff"/>
+    </linearGradient>
+  </defs>
+  <rect width="180" height="220" rx="18" fill="url(#bg)"/>
+  <circle cx="90" cy="72" r="34" fill="#0e1520" stroke="url(#acc)" stroke-width="4"/>
+  <path d="M56 177c0-28 15-48 34-56l20 0c19 8 34 28 34 56" fill="#101823" stroke="url(#acc)" stroke-width="4"/>
+  <path d="M74 66c3-12 10-20 16-20s13 8 16 20" fill="none" stroke="#dce4ee" stroke-width="3" opacity="0.7"/>
+  <circle cx="78" cy="72" r="4" fill="#dce4ee"/>
+  <circle cx="102" cy="72" r="4" fill="#dce4ee"/>
+  <path d="M77 89c8 7 18 7 26 0" fill="none" stroke="url(#acc)" stroke-width="4" stroke-linecap="round"/>
+  <rect x="38" y="16" width="104" height="18" rx="9" fill="#ffffff10" stroke="#ffffff20"/>
+  <text x="90" y="29" fill="#F7F7F3" font-family="Inter, Arial, sans-serif" font-size="11" font-weight="800" text-anchor="middle" letter-spacing="1.8">SENTINEL</text>
+  <path d="M42 198h96" stroke="#ffffff2f" stroke-width="2"/>
+  <circle cx="90" cy="149" r="11" fill="url(#acc)" opacity="0.9"/>
+</svg>

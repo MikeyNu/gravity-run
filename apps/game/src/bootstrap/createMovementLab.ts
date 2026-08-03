@@ -1,7 +1,7 @@
 import { movementConfig } from '@gravity-run/game-config';
 import { GameRuntime } from '../game/core/GameRuntime';
 import { InputBuffer } from '../game/input/InputBuffer';
-import { MovementLabSimulation } from '../game/simulation/MovementLabSimulation';
+import { GravityRunSimulation } from '../game/simulation/GravityRunSimulation';
 import { ThreeScene } from '../render/ThreeScene';
 import { detectQualityTier } from '../render/quality/detectQualityTier';
 import { useHudStore } from '../ui/hudStore';
@@ -9,7 +9,7 @@ import { useHudStore } from '../ui/hudStore';
 export function createMovementLab(host: HTMLElement): GameRuntime {
   const quality = detectQualityTier();
   const input = new InputBuffer(window);
-  const simulation = new MovementLabSimulation(movementConfig);
+  const simulation = new GravityRunSimulation('gravity-run-public-alpha');
   const scene = new ThreeScene(host, quality);
 
   useHudStore.getState().setQuality(quality);

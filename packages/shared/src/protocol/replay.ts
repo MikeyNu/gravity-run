@@ -1,8 +1,10 @@
 export interface ReplayHeader {
-  replayVersion: 1;
+  replayVersion: 2;
   simulationVersion: string;
   configurationHash: string;
   seed: string;
+  mode: 'endless' | 'daily' | 'practice';
+  assisted: boolean;
   startedAt: string;
 }
 
@@ -11,27 +13,35 @@ export interface ReplayInputTransition {
   state: 'pressed' | 'released';
 }
 
+export interface ReplayStateChecksum {
+  tick: number;
+  checksum: string;
+}
+
 export interface ReplaySubmission {
   header: ReplayHeader;
   transitions: ReplayInputTransition[];
-  stateChecksums: Array<{ tick: number; checksum: string }>;
+  stateChecksums: ReplayStateChecksum[];
   clientResult: {
     score: number;
     distance: number;
+    fragments: number;
+    maximumCombo: number;
     durationTicks: number;
+    failureReason: string | null;
   };
 }
 
 export interface ReplayEnvelope<T> {
   protocol: 'gravity-run/replay';
-  version: 1;
+  version: 2;
   payload: T;
 }
 
 export function createReplayEnvelope<T>(payload: T): ReplayEnvelope<T> {
   return {
     protocol: 'gravity-run/replay',
-    version: 1,
+    version: 2,
     payload,
   };
 }

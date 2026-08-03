@@ -44,6 +44,10 @@ export function length(value: Vec3): number {
   return Math.sqrt(lengthSquared(value));
 }
 
+export function distance(a: Vec3, b: Vec3): number {
+  return length(subtract(a, b));
+}
+
 export function normalize(value: Vec3): Vec3 {
   const magnitude = length(value);
   if (magnitude <= Number.EPSILON) return vec3();
@@ -62,4 +66,18 @@ export function lerpVec3(a: Vec3, b: Vec3, alpha: number): Vec3 {
     y: a.y + (b.y - a.y) * alpha,
     z: a.z + (b.z - a.z) * alpha,
   };
+}
+
+export function clamp(value: number, minimum: number, maximum: number): number {
+  return Math.min(Math.max(value, minimum), maximum);
+}
+
+export function project(value: Vec3, normal: Vec3): Vec3 {
+  const denominator = lengthSquared(normal);
+  if (denominator <= Number.EPSILON) return vec3();
+  return scale(normal, dot(value, normal) / denominator);
+}
+
+export function negate(value: Vec3): Vec3 {
+  return scale(value, -1);
 }
