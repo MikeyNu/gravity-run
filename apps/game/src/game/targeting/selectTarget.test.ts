@@ -61,6 +61,7 @@ describe('target selection', () => {
       position: { x: 8, y: 1, z: 0 },
       halfExtents: { x: 0.5, y: 4, z: 4 },
       lethal: true,
+      motion: { kind: 'static' },
     }];
 
     const result = selectGravityTarget({ ...baseInput, wells: [well], hazards });

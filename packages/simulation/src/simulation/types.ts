@@ -48,9 +48,12 @@ export interface SimulationSnapshot {
   failureReason: FailureReason;
   countdownTicks: number;
   checksum: string;
+  worldOriginX: number;
   modules: readonly CourseModuleDefinition[];
   wells: readonly GravityWellDefinition[];
   hazards: readonly HazardDefinition[];
   pickups: readonly FragmentDefinition[];
   collectedFragmentIds: readonly string[];
+  /** True when the current active/preview target is a route dead-end (no forward successors). */
+  targetIsDeadEnd: boolean;
 }

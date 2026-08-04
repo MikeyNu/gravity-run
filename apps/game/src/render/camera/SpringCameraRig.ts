@@ -18,6 +18,8 @@ export interface CameraRigInput {
 
 const WORLD_UP = new THREE.Vector3(0, 1, 0);
 const FALLBACK_FORWARD = new THREE.Vector3(1, 0, 0);
+const MAX_ROLL_DEGREES = 14;
+const CAMERA_MIN_HEIGHT_ABOVE_PLAYER = 1.5;
 
 export class SpringCameraRig {
   readonly #camera: THREE.PerspectiveCamera;
@@ -28,8 +30,16 @@ export class SpringCameraRig {
   readonly #right = new THREE.Vector3();
   readonly #desiredPosition = new THREE.Vector3();
   readonly #desiredFocus = new THREE.Vector3();
+  readonly #prevFocusDir = new THREE.Vector3();
+  readonly #rollQuat = new THREE.Quaternion();
+  readonly #viewDir = new THREE.Vector3();
   #horizontalFov = 72;
   #horizontalFovVelocity = 0;
+  #rollDegrees = 0;
+  #rollVelocity = 0;
+  // Orbit-plane framing: blend the camera "up" toward the orbit normal.
+  readonly #blendedUp = new THREE.Vector3(0, 1, 0);
+  readonly #blendedUpVelocity = new THREE.Vector3();
   #initialized = false;
 
   constructor(camera: THREE.PerspectiveCamera) {
@@ -48,8 +58,13 @@ export class SpringCameraRig {
     this.#focus.copy(this.#desiredFocus);
     this.#positionVelocity.set(0, 0, 0);
     this.#focusVelocity.set(0, 0, 0);
+    this.#prevFocusDir.copy(this.#forward);
+    this.#blendedUp.copy(WORLD_UP);
+    this.#blendedUpVelocity.set(0, 0, 0);
     this.#horizontalFov = 72;
     this.#horizontalFovVelocity = 0;
+    this.#rollDegrees = 0;
+    this.#rollVelocity = 0;
     this.#camera.fov = verticalFovFromHorizontal(this.#horizontalFov, aspect);
     this.#camera.lookAt(this.#focus);
     this.#camera.updateProjectionMatrix();
@@ -78,6 +93,26 @@ export class SpringCameraRig {
       this.#desiredFocus.lerp(input.targetPosition, input.targetLocked ? 0.28 : 0.1);
     }
 
+    // Orbit-plane framing: when target is locked, tilt the camera "up" toward the orbit normal
+    // so the arc is visible rather than edge-on.
+    if (input.targetLocked && input.targetPosition) {
+      const toTarget = new THREE.Vector3()
+        .subVectors(input.targetPosition, input.playerPosition)
+        .normalize();
+      const orbitNormal = new THREE.Vector3()
+        .crossVectors(input.playerVelocity.clone().normalize(), toTarget)
+        .normalize();
+      if (orbitNormal.lengthSq() > 0.1) {
+        // Blend the camera-up 30% toward the orbit normal for framing
+        const framingUp = WORLD_UP.clone().lerp(orbitNormal, input.reducedMotion ? 0 : 0.3).normalize();
+        stepCriticallyDampedVector(this.#blendedUp, this.#blendedUpVelocity, framingUp, 0.22, input.deltaSeconds);
+      } else {
+        stepCriticallyDampedVector(this.#blendedUp, this.#blendedUpVelocity, WORLD_UP, 0.18, input.deltaSeconds);
+      }
+    } else {
+      stepCriticallyDampedVector(this.#blendedUp, this.#blendedUpVelocity, WORLD_UP, 0.18, input.deltaSeconds);
+    }
+
     stepCriticallyDampedVector(
       this.#camera.position,
       this.#positionVelocity,
@@ -93,6 +128,13 @@ export class SpringCameraRig {
       input.deltaSeconds,
     );
 
+    // Camera floor collision guard — keep camera at least CAMERA_MIN_HEIGHT_ABOVE_PLAYER above the player
+    const minCameraY = input.playerPosition.y + CAMERA_MIN_HEIGHT_ABOVE_PLAYER;
+    if (this.#camera.position.y < minCameraY) {
+      this.#camera.position.y = minCameraY;
+      if (this.#positionVelocity.y < 0) this.#positionVelocity.y = 0;
+    }
+
     const targetHorizontalFov = input.reducedMotion
       ? 72
       : 70 + speed01 * 10 - (input.targetLocked ? 2 : 0);
@@ -105,8 +147,30 @@ export class SpringCameraRig {
     this.#horizontalFov = fov.value;
     this.#horizontalFovVelocity = fov.velocity;
     this.#camera.fov = verticalFovFromHorizontal(this.#horizontalFov, input.aspect);
-    this.#camera.up.copy(WORLD_UP);
+
+    // Bounded roll: compute lateral angular rate of focus direction and derive a roll tilt
+    this.#viewDir.subVectors(this.#focus, this.#camera.position).normalize();
+    const lateralRate = this.#viewDir.dot(this.#right) - this.#prevFocusDir.dot(this.#right);
+    this.#prevFocusDir.copy(this.#viewDir);
+    const desiredRoll = input.reducedMotion
+      ? 0
+      : THREE.MathUtils.clamp(lateralRate * 180, -MAX_ROLL_DEGREES, MAX_ROLL_DEGREES);
+    const rollSpring = stepCriticallyDampedSpring(
+      { value: this.#rollDegrees, velocity: this.#rollVelocity },
+      desiredRoll,
+      0.3,
+      input.deltaSeconds,
+    );
+    this.#rollDegrees = rollSpring.value;
+    this.#rollVelocity = rollSpring.velocity;
+
+    this.#camera.up.copy(this.#blendedUp).normalize();
     this.#camera.lookAt(this.#focus);
+    // Apply bounded roll as post-rotation around view direction
+    if (Math.abs(this.#rollDegrees) > 0.05) {
+      this.#rollQuat.setFromAxisAngle(this.#viewDir, THREE.MathUtils.degToRad(this.#rollDegrees));
+      this.#camera.quaternion.premultiply(this.#rollQuat);
+    }
     this.#camera.updateProjectionMatrix();
   }
 

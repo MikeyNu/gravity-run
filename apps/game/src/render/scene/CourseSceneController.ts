@@ -11,10 +11,10 @@ export class CourseSceneController {
   readonly #gameplayAssets: GameplayAssetLibrary;
   #signature = '';
 
-  constructor(group: THREE.Group, quality: QualityTier) {
+  constructor(group: THREE.Group, quality: QualityTier, renderer: THREE.WebGLRenderer) {
     this.#group = group;
-    this.#wellAssets = new WellAssetLibrary(quality);
-    this.#gameplayAssets = new GameplayAssetLibrary(quality);
+    this.#wellAssets = new WellAssetLibrary(quality, renderer);
+    this.#gameplayAssets = new GameplayAssetLibrary(quality, renderer);
   }
 
   async preload(): Promise<void> {
@@ -54,7 +54,10 @@ export class CourseSceneController {
       object.userData.gameplayHazard = true;
       object.userData.hazardKind = hazard.kind;
       object.userData.phaseOffset = hashPhase(hazard.id);
+      object.userData.baseX = hazard.position.x;
       object.userData.baseY = hazard.position.y;
+      object.userData.baseZ = hazard.position.z;
+      object.userData.hazardMotion = hazard.motion;
       this.#group.add(object);
     }
 
@@ -104,11 +107,26 @@ export class CourseSceneController {
       }
 
       if (!child.userData.gameplayHazard) continue;
-      if (child.userData.hazardKind === 'blade') {
+      const kind: string = child.userData.hazardKind;
+      if (kind === 'blade') {
         child.rotation.x += frameDelta * (reducedMotion ? 0.15 : 0.65);
-      } else if (child.userData.hazardKind === 'debris') {
+      } else if (kind === 'debris') {
         child.rotation.y += frameDelta * (reducedMotion ? 0.025 : 0.12);
         child.rotation.z += frameDelta * (reducedMotion ? 0.018 : 0.07);
+      } else if (kind === 'saw') {
+        child.rotation.x += frameDelta * (reducedMotion ? 0.5 : 2.4);
+      }
+
+      const motion = child.userData.hazardMotion as { kind: string; axis?: string; amplitude?: number; period?: number; phase?: number; rpm?: number } | undefined;
+      if (!motion || motion.kind === 'static') continue;
+      const TAU = Math.PI * 2;
+      if ((motion.kind === 'oscillate' || motion.kind === 'pendulum') && motion.amplitude !== undefined && motion.period !== undefined && motion.phase !== undefined) {
+        const offset = reducedMotion
+          ? 0
+          : motion.amplitude * Math.sin(TAU * elapsedSeconds / motion.period + motion.phase);
+        child.position.x = Number(child.userData.baseX) + (motion.axis === 'x' ? offset : 0);
+        child.position.y = Number(child.userData.baseY) + (motion.axis === 'y' ? offset : 0);
+        child.position.z = Number(child.userData.baseZ) + (motion.axis === 'z' ? offset : 0);
       }
     }
   }
@@ -170,9 +188,7 @@ export class CourseSceneController {
   }
 }
 
-function hazardFallback(
-  kind: 'spire' | 'blade' | 'debris' | 'collapse-gate',
-): THREE.Group {
+function hazardFallback(kind: string): THREE.Group {
   const group = new THREE.Group();
   const material = new THREE.MeshStandardMaterial({
     color: kind === 'collapse-gate' ? 0x3c434c : 0x171c24,
@@ -198,6 +214,23 @@ function hazardFallback(
     }
   } else if (kind === 'debris') {
     group.add(new THREE.Mesh(new THREE.DodecahedronGeometry(0.92, 0), material));
+  } else if (kind === 'saw') {
+    const hub = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.18, 0.35, 12), material);
+    hub.rotation.z = Math.PI / 2;
+    group.add(hub);
+    const disc = new THREE.Mesh(new THREE.CylinderGeometry(0.92, 0.92, 0.12, 32), warning);
+    disc.rotation.z = Math.PI / 2;
+    group.add(disc);
+  } else if (kind === 'piston') {
+    const shaft = new THREE.Mesh(new THREE.BoxGeometry(0.7, 1.4, 0.7), material);
+    const cap = new THREE.Mesh(new THREE.BoxGeometry(1.1, 0.28, 1.1), warning);
+    cap.position.y = 0.84;
+    group.add(shaft, cap);
+  } else if (kind === 'swinging-arm') {
+    const arm = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.5, 6.5), material);
+    const head = new THREE.Mesh(new THREE.SphereGeometry(0.55, 14, 10), warning);
+    head.position.z = 3.5;
+    group.add(arm, head);
   } else {
     group.add(new THREE.Mesh(new THREE.BoxGeometry(1.8, 6.8, 5.8), material));
   }

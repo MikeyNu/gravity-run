@@ -9,6 +9,7 @@ const hazard: HazardDefinition = {
   position: { x: 0, y: 0, z: 0 },
   halfExtents: { x: 1, y: 1, z: 1 },
   lethal: false,
+  motion: { kind: 'static' },
 };
 
 describe('sweepSphereAgainstHazard', () => {

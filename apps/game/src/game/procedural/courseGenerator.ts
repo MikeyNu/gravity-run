@@ -5,6 +5,7 @@ import {
   type GravityWellClass,
   type GravityWellDefinition,
   type HazardDefinition,
+  type HazardMotion,
 } from '@gravity-run/game-config';
 import { Xoshiro128StarStar, type RandomState, type Vec3 } from '@gravity-run/shared';
 
@@ -114,6 +115,8 @@ function well(
   };
 }
 
+const STATIC_MOTION: HazardMotion = { kind: 'static' };
+
 function hazard(
   moduleId: number,
   slot: number,
@@ -121,8 +124,9 @@ function hazard(
   position: Vec3,
   halfExtents: Vec3,
   lethal = true,
+  motion: HazardMotion = STATIC_MOTION,
 ): HazardDefinition {
-  return { id: `m${moduleId}-hazard-${slot}`, moduleId, kind, position, halfExtents, lethal };
+  return { id: `m${moduleId}-hazard-${slot}`, moduleId, kind, position, halfExtents, lethal, motion };
 }
 
 function fragment(moduleId: number, slot: number, position: Vec3): FragmentDefinition {
@@ -169,9 +173,18 @@ export function generateCourseModule(seed: string, moduleId: number): CourseModu
   }
 
   if (archetype === 'precision-gate') {
+    const pistonVariant = random.nextFloat() < 0.35;
     wells.push(well(moduleId, 0, { x: x(12), y: 0, z: 0 }, { x: 1, y: 0, z: 0 }, 'precision', 0.7));
-    hazards.push(hazard(moduleId, 0, 'collapse-gate', { x: x(28), y: 5.3, z: 0 }, { x: 1.2, y: 3.8, z: 6.5 }));
-    hazards.push(hazard(moduleId, 1, 'collapse-gate', { x: x(28), y: -5.3, z: 0 }, { x: 1.2, y: 3.8, z: 6.5 }));
+    if (pistonVariant) {
+      const period = 1.8 + randomRange(random, 0, 1.2);
+      hazards.push(hazard(moduleId, 0, 'piston', { x: x(26), y: 4.5, z: 0 }, { x: 0.9, y: 1.8, z: 5.5 }, true,
+        { kind: 'oscillate', axis: 'y', amplitude: 3.2, period, phase: 0 }));
+      hazards.push(hazard(moduleId, 1, 'piston', { x: x(26), y: -4.5, z: 0 }, { x: 0.9, y: 1.8, z: 5.5 }, true,
+        { kind: 'oscillate', axis: 'y', amplitude: 3.2, period, phase: Math.PI }));
+    } else {
+      hazards.push(hazard(moduleId, 0, 'collapse-gate', { x: x(28), y: 5.3, z: 0 }, { x: 1.2, y: 3.8, z: 6.5 }));
+      hazards.push(hazard(moduleId, 1, 'collapse-gate', { x: x(28), y: -5.3, z: 0 }, { x: 1.2, y: 3.8, z: 6.5 }));
+    }
     fragments.push(fragment(moduleId, 0, { x: x(29), y: 0, z: 0 }));
     wells.push(well(moduleId, 1, { x: x(39), y: 0, z: 0 }, { x: 1, y: 0, z: 0 }, 'accelerator', 0.8));
   }
@@ -180,22 +193,30 @@ export function generateCourseModule(seed: string, moduleId: number): CourseModu
     wells.push(well(moduleId, 0, { x: x(13), y: 0, z: 0 }, { x: 1, y: 0, z: 0 }, 'standard', 0.3));
     wells.push(well(moduleId, 1, { x: x(32), y: 5.5, z: -6 }, { x: 1, y: -0.08, z: 0.08 }, 'precision', 0.9));
     wells.push(well(moduleId, 2, { x: x(32), y: -2.5, z: 7 }, { x: 1, y: 0.06, z: -0.08 }, 'recovery', 0.25));
-    hazards.push(hazard(moduleId, 0, 'spire', { x: x(29), y: 1, z: 0 }, { x: 1.4, y: 6, z: 1.4 }));
+    if (random.nextFloat() < 0.45) {
+      hazards.push(hazard(moduleId, 0, 'swinging-arm', { x: x(29), y: 1, z: 0 }, { x: 0.6, y: 0.6, z: 7 }, true,
+        { kind: 'pendulum', axis: 'z', amplitude: 5.5, period: 2.8, phase: randomRange(random, 0, Math.PI * 2) }));
+    } else {
+      hazards.push(hazard(moduleId, 0, 'spire', { x: x(29), y: 1, z: 0 }, { x: 1.4, y: 6, z: 1.4 }));
+    }
   }
 
   if (archetype === 'debris-field') {
+    const kinematic = random.nextFloat() < 0.4;
     wells.push(well(moduleId, 0, { x: x(11), y: 2, z: -4 }, { x: 1, y: 0, z: 0.08 }, 'accelerator', 0.65));
     wells.push(well(moduleId, 1, { x: x(38), y: -1, z: 4 }, { x: 1, y: 0.06, z: -0.05 }, 'standard', 0.5));
     for (let index = 0; index < 7; index += 1) {
-      hazards.push(hazard(moduleId, index, 'debris', {
-        x: x(18 + randomRange(random, 0, 16)),
-        y: randomRange(random, -5, 7),
-        z: randomRange(random, -8, 8),
-      }, {
-        x: randomRange(random, 0.55, 1.5),
-        y: randomRange(random, 0.55, 1.5),
-        z: randomRange(random, 0.55, 1.5),
-      }));
+      const useSaw = kinematic && index < 2;
+      const motion: HazardMotion = useSaw
+        ? { kind: 'rotate', axis: 'x', rpm: 45 + randomRange(random, 0, 30), phase: randomRange(random, 0, Math.PI * 2) }
+        : STATIC_MOTION;
+      const r = randomRange(random, 0.55, 1.5);
+      hazards.push(hazard(
+        moduleId, index, useSaw ? 'saw' : 'debris',
+        { x: x(18 + randomRange(random, 0, 16)), y: randomRange(random, -5, 7), z: randomRange(random, -8, 8) },
+        useSaw ? { x: 0.2, y: r, z: r } : { x: r, y: randomRange(random, 0.55, 1.5), z: randomRange(random, 0.55, 1.5) },
+        true, motion,
+      ));
     }
   }
 

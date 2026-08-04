@@ -14,6 +14,10 @@ import { ParticleBurstPool } from './vfx/ParticleBurstPool';
 import { PlayerTrail } from './vfx/PlayerTrail';
 import { SpeedLineField } from './vfx/SpeedLineField';
 import { TetherRibbon } from './vfx/TetherRibbon';
+import { CourierAnimationController } from './character/CourierAnimationController';
+import { createRenderer } from './createRenderer';
+import { EnvironmentProbes } from './scene/EnvironmentProbes';
+import { LightmapRegistry } from './scene/LightmapRegistry';
 
 const FORWARD = new THREE.Vector3(1, 0, 0);
 
@@ -37,6 +41,9 @@ export class ThreeScene implements PresentationPort {
   readonly #speedLines: SpeedLineField;
   readonly #eventParticles: ParticleBurstPool;
   readonly #audio = new AudioDirector();
+  readonly #courier = new CourierAnimationController();
+  readonly #lightmaps = new LightmapRegistry();
+  #probes: EnvironmentProbes | null = null;
   readonly #collapse: THREE.Mesh<THREE.PlaneGeometry, THREE.MeshBasicMaterial>;
   readonly #targetPosition = new THREE.Vector3();
   readonly #interpolatedPosition = new THREE.Vector3();
@@ -47,8 +54,28 @@ export class ThreeScene implements PresentationPort {
   #height = 1;
   #pixelRatio: number;
   #lastPresentationTick = -1;
+  #worldOriginX = 0;
+  #rendererBackend: 'webgpu' | 'webgl' = 'webgl';
+  #lightmapsApplied = false;
 
-  constructor(host: HTMLElement, quality: QualityTier) {
+  static async create(host: HTMLElement, quality: QualityTier): Promise<ThreeScene> {
+    const { renderer, backend } = await createRenderer(host, quality);
+    const scene = new ThreeScene(host, quality, renderer);
+    scene.#rendererBackend = backend;
+
+    // Init PMREM probes and lightmaps in parallel — non-blocking for startup
+    scene.#probes = new EnvironmentProbes(scene.#scene, scene.#renderer, quality);
+    void Promise.all([
+      scene.#probes.init(),
+      scene.#lightmaps.preload(),
+    ]);
+
+    return scene;
+  }
+
+  get rendererBackend(): 'webgpu' | 'webgl' { return this.#rendererBackend; }
+
+  constructor(host: HTMLElement, quality: QualityTier, externalRenderer?: THREE.WebGLRenderer) {
     this.#host = host;
     this.#quality = quality;
     this.#pixelRatio = Math.min(
@@ -57,16 +84,20 @@ export class ThreeScene implements PresentationPort {
     );
     this.#adaptiveResolution = new AdaptiveResolutionController(quality);
 
-    this.#renderer = new THREE.WebGLRenderer({
-      antialias: quality === 'compatibility',
-      powerPreference: 'high-performance',
-      stencil: false,
-      alpha: false,
-    });
-    this.#renderer.shadowMap.enabled = quality !== 'compatibility';
-    this.#renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-    this.#renderer.outputColorSpace = THREE.SRGBColorSpace;
-    host.appendChild(this.#renderer.domElement);
+    if (externalRenderer) {
+      this.#renderer = externalRenderer;
+    } else {
+      this.#renderer = new THREE.WebGLRenderer({
+        antialias: quality === 'compatibility',
+        powerPreference: 'high-performance',
+        stencil: false,
+        alpha: false,
+      });
+      this.#renderer.shadowMap.enabled = quality !== 'compatibility';
+      this.#renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+      this.#renderer.outputColorSpace = THREE.SRGBColorSpace;
+      host.appendChild(this.#renderer.domElement);
+    }
 
     this.#scene.background = new THREE.Color(0x04060a);
     this.#scene.fog = new THREE.FogExp2(
@@ -78,15 +109,17 @@ export class ThreeScene implements PresentationPort {
     this.#createLighting();
     this.#createPlayer();
 
-    this.#courseController = new CourseSceneController(this.#course, quality);
+    this.#courseController = new CourseSceneController(this.#course, quality, this.#renderer);
     this.#environmentController = new EnvironmentSceneController(
       this.#environment,
       this.#environmentFallback,
       quality,
+      this.#renderer,
     );
     void Promise.all([
       this.#courseController.preload(),
       this.#environmentController.preload(),
+      this.#courier.preload(this.#renderer),
     ]);
 
     this.#scene.add(this.#tether.object, this.#trail.object);
@@ -140,6 +173,11 @@ export class ThreeScene implements PresentationPort {
     alpha: number,
     frameDelta: number,
   ): void {
+    this.#worldOriginX = current.worldOriginX;
+    this.#course.position.x = -this.#worldOriginX;
+    this.#environment.position.x = -this.#worldOriginX;
+    this.#environmentFallback.position.x = -this.#worldOriginX;
+
     this.#courseController.sync(current);
     this.#environmentController.sync(current.modules);
 
@@ -169,7 +207,11 @@ export class ThreeScene implements PresentationPort {
       ? current.wells.find((well) => well.id === targetId)
       : undefined;
     const targetPosition = target
-      ? this.#targetPosition.set(target.position.x, target.position.y, target.position.z)
+      ? this.#targetPosition.set(
+          target.position.x - this.#worldOriginX,
+          target.position.y,
+          target.position.z,
+        )
       : null;
     const reducedMotion = this.#reducedMotion();
 
@@ -210,6 +252,24 @@ export class ThreeScene implements PresentationPort {
     );
     this.#courseController.animate(frameDelta, current.elapsedSeconds, reducedMotion);
     this.#environmentController.animate(current.elapsedSeconds, reducedMotion);
+    this.#courier.update(current, previous, frameDelta, this.#quality);
+
+    // Apply lightmaps once after environment scene populates
+    if (!this.#lightmapsApplied && this.#environment.children.length > 0) {
+      this.#lightmaps.apply(this.#environment);
+      this.#lightmapsApplied = true;
+    }
+
+    // Attach courier mesh to player group once it loads; hide procedural fallback
+    const courierObject = this.#courier.object;
+    if (courierObject && !this.#player.children.includes(courierObject)) {
+      this.#player.add(courierObject);
+      // Hide the procedural geometry children (body, visor, reactor added in #createPlayer)
+      for (const child of this.#player.children) {
+        if (child !== courierObject) child.visible = false;
+      }
+    }
+
     this.#pipeline.render(frameDelta);
 
     const nextScale = this.#adaptiveResolution.sample(frameDelta * 1000);
@@ -227,6 +287,9 @@ export class ThreeScene implements PresentationPort {
   dispose(): void {
     this.#courseController.dispose();
     this.#environmentController.dispose();
+    this.#courier.dispose();
+    this.#probes?.dispose();
+    this.#lightmaps.dispose();
     this.#pipeline.dispose();
     this.#tether.dispose();
     this.#trail.dispose();

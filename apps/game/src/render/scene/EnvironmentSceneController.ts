@@ -10,10 +10,10 @@ export class EnvironmentSceneController {
   readonly #assets: EnvironmentAssetLibrary;
   #signature = '';
 
-  constructor(group: THREE.Group, fallback: THREE.Group, quality: QualityTier) {
+  constructor(group: THREE.Group, fallback: THREE.Group, quality: QualityTier, renderer: THREE.WebGLRenderer) {
     this.#group = group;
     this.#fallback = fallback;
-    this.#assets = new EnvironmentAssetLibrary(quality);
+    this.#assets = new EnvironmentAssetLibrary(quality, renderer);
     this.#group.visible = false;
     this.#fallback.visible = true;
   }

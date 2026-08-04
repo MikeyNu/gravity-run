@@ -1,7 +1,13 @@
 import type { Vec3 } from '@gravity-run/shared';
 
 export type GravityWellClass = 'standard' | 'accelerator' | 'precision' | 'recovery';
-export type HazardKind = 'spire' | 'blade' | 'debris' | 'collapse-gate';
+export type HazardKind = 'spire' | 'blade' | 'debris' | 'collapse-gate' | 'saw' | 'piston' | 'swinging-arm';
+
+export type HazardMotion =
+  | { kind: 'static' }
+  | { kind: 'oscillate'; axis: 'x' | 'y' | 'z'; amplitude: number; period: number; phase: number }
+  | { kind: 'rotate'; axis: 'x' | 'y' | 'z'; rpm: number; phase: number }
+  | { kind: 'pendulum'; axis: 'x' | 'y' | 'z'; amplitude: number; period: number; phase: number };
 
 export interface CourseGenerationConfig {
   moduleLength: number;
@@ -41,6 +47,7 @@ export interface HazardDefinition {
   position: Vec3;
   halfExtents: Vec3;
   lethal: boolean;
+  motion: HazardMotion;
 }
 
 export interface FragmentDefinition {

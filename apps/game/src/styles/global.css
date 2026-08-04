@@ -487,3 +487,208 @@ html[data-reduced-motion='true'] *::after {
 }
 .key-features .ui-icon { opacity: 0.95; }
 .screen-settings .score-panel { opacity: 0.28; }
+
+/* Leaderboard panel */
+.challenge-actions { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+.challenge-actions .primary-action,
+.challenge-actions .secondary-action { flex: 1; min-width: 120px; font-size: 11px; }
+.challenge-loading { color: var(--ink-soft); font-size: 12px; margin: 8px 0; }
+.leaderboard-list {
+  list-style: none; margin: 12px 0 0; padding: 0;
+  display: grid; gap: 4px;
+  max-height: 180px; overflow-y: auto;
+}
+.leaderboard-entry {
+  display: grid;
+  grid-template-columns: 28px 1fr auto auto;
+  gap: 8px;
+  align-items: center;
+  padding: 5px 8px;
+  background: rgba(255,255,255,0.035);
+  font-size: 11px;
+}
+.lb-rank { color: var(--gold); font-weight: 800; }
+.lb-name { color: #f7f7f2; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lb-score { color: var(--gold); font-weight: 700; }
+.lb-dist { color: var(--ink-soft); }
+
+/* Submission status */
+.submission-status {
+  margin: 8px 0;
+  font-size: 13px;
+  color: var(--ink-soft);
+}
+.submission-rank { color: var(--gold); font-weight: 800; }
+.submission-error { color: #ff6a6a; }
+
+/* Text scaling — applied via --text-scale CSS property on :root */
+:root { --text-scale: 1; }
+body { font-size: calc(16px * var(--text-scale)); }
+
+/* Left-handed layout — mirror rail and score positions */
+html[data-left-handed='true'] .left-rail { left: auto; right: max(26px, env(safe-area-inset-right)); }
+html[data-left-handed='true'] .score-panel { right: auto; left: max(26px, env(safe-area-inset-left)); text-align: left; }
+html[data-left-handed='true'] .bottom-dock { left: max(26px, env(safe-area-inset-left)); right: max(390px, 33%); }
+
+/* Keybind button */
+.keybind-button {
+  appearance: none;
+  min-width: 80px;
+  padding: 6px 14px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.2);
+  color: #f7f7f2;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  cursor: pointer;
+  transition: border-color 140ms ease, background 140ms ease;
+}
+.keybind-button:hover { border-color: var(--gold); }
+.keybind-button:focus-visible { outline: 2px solid var(--cyan); outline-offset: 3px; }
+.keybind-listening {
+  border-color: var(--cyan) !important;
+  background: rgba(105, 216, 255, 0.1) !important;
+  animation: keybind-pulse 1s ease-in-out infinite;
+}
+@keyframes keybind-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.65; }
+}
+
+/* Gamepad button index input */
+.gamepad-button-input {
+  width: 56px;
+  padding: 6px 10px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.2);
+  color: #f7f7f2;
+  font-size: 12px;
+  font-weight: 800;
+  text-align: center;
+  accent-color: var(--gold);
+}
+.gamepad-button-input:focus-visible { outline: 2px solid var(--cyan); outline-offset: 3px; }
+
+/* Character roster */
+.portrait-card {
+  position: relative;
+  margin: 0;
+  cursor: pointer;
+  border-radius: 4px;
+  border: 2px solid transparent;
+  transition: border-color 140ms ease, transform 140ms ease;
+  outline: none;
+}
+.portrait-card:hover,
+.portrait-card:focus-visible { border-color: rgba(255,255,255,0.3); transform: translateY(-2px); }
+.portrait-card:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
+.portrait-selected { border-color: var(--gold) !important; }
+.portrait-locked { opacity: 0.48; filter: grayscale(0.6); }
+.portrait-lock {
+  position: absolute;
+  top: 4px; right: 4px;
+  font-size: 13px;
+  pointer-events: none;
+}
+.portrait-badge {
+  position: absolute;
+  top: 4px; left: 4px;
+  color: var(--gold);
+  font-size: 12px;
+  font-weight: 900;
+  pointer-events: none;
+}
+.portrait-card figcaption {
+  text-align: center;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  margin-top: 4px;
+  color: var(--ink-soft);
+}
+.portrait-selected figcaption { color: var(--gold); }
+
+/* Tether colour picker */
+.tether-picker {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255,255,255,0.08);
+}
+.tether-label {
+  color: var(--ink-soft);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  flex-shrink: 0;
+}
+.tether-swatch {
+  appearance: none;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  background: var(--swatch-color, #f5b61b);
+  cursor: pointer;
+  transition: transform 120ms ease, border-color 120ms ease;
+  box-shadow: 0 0 6px color-mix(in srgb, var(--swatch-color, #f5b61b) 40%, transparent);
+}
+.tether-swatch:hover { transform: scale(1.15); }
+.tether-swatch:focus-visible { outline: 2px solid var(--cyan); outline-offset: 3px; }
+.tether-swatch-active { border-color: #fff; transform: scale(1.1); }
+
+/* Tutorial hint overlay */
+.tutorial-hint {
+  position: absolute;
+  bottom: max(96px, env(safe-area-inset-bottom) + 80px);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 5;
+  width: min(380px, calc(100vw - 40px));
+  padding: 18px 20px 14px;
+  border-top: 2px solid var(--cyan);
+  background: linear-gradient(180deg, rgba(5, 12, 24, 0.96), rgba(5, 10, 20, 0.90));
+  animation: tutorial-in 220ms ease forwards;
+}
+@keyframes tutorial-in {
+  from { opacity: 0; transform: translateX(-50%) translateY(8px); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+.tutorial-hint-title {
+  display: block;
+  color: var(--cyan);
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.14em;
+  margin-bottom: 6px;
+}
+.tutorial-hint-body {
+  margin: 0 0 14px;
+  color: #f0f2f6;
+  font-size: 14px;
+  line-height: 1.45;
+}
+.tutorial-skip {
+  appearance: none;
+  background: none;
+  border: none;
+  color: var(--ink-soft);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  padding: 0;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.tutorial-skip:hover { color: #f7f7f2; }
+.tutorial-skip:focus-visible { outline: 2px solid var(--cyan); outline-offset: 3px; }
+
+@media (max-width: 760px) {
+  .tutorial-hint {
+    bottom: max(72px, env(safe-area-inset-bottom) + 60px);
+    width: calc(100vw - 28px);
+  }
+}

@@ -1,4 +1,5 @@
 export * from './challengeManifest.js';
+export * from './characters.js';
 export * from './course.js';
 export * from './movement.js';
 export * from './quality.js';

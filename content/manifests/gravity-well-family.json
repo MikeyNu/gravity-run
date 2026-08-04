@@ -2,28 +2,108 @@
   "assetId": "gravity-well-family-v1",
   "runtimePath": "/assets/models/gravity-well-family.glb",
   "sourceGenerator": "tools/asset-authoring/generate_gravity_wells.py",
-  "fileBytes": 3327600,
+  "fileBytes": 3331336,
   "meshCount": 348,
   "materialCount": 16,
   "variants": [
-    {"variant":"standard","lod":0,"triangles":6360,"outerRadiusMetres":1.68,"nodePrefix":"well_standard_lod0"},
-    {"variant":"standard","lod":1,"triangles":2248,"outerRadiusMetres":1.68,"nodePrefix":"well_standard_lod1"},
-    {"variant":"standard","lod":2,"triangles":956,"outerRadiusMetres":1.68,"nodePrefix":"well_standard_lod2"},
-    {"variant":"accelerator","lod":0,"triangles":6504,"outerRadiusMetres":1.88,"nodePrefix":"well_accelerator_lod0"},
-    {"variant":"accelerator","lod":1,"triangles":2344,"outerRadiusMetres":1.88,"nodePrefix":"well_accelerator_lod1"},
-    {"variant":"accelerator","lod":2,"triangles":992,"outerRadiusMetres":1.88,"nodePrefix":"well_accelerator_lod2"},
-    {"variant":"precision","lod":0,"triangles":6444,"outerRadiusMetres":1.68,"nodePrefix":"well_precision_lod0"},
-    {"variant":"precision","lod":1,"triangles":2308,"outerRadiusMetres":1.68,"nodePrefix":"well_precision_lod1"},
-    {"variant":"precision","lod":2,"triangles":980,"outerRadiusMetres":1.68,"nodePrefix":"well_precision_lod2"},
-    {"variant":"recovery","lod":0,"triangles":6804,"outerRadiusMetres":1.68,"nodePrefix":"well_recovery_lod0"},
-    {"variant":"recovery","lod":1,"triangles":2460,"outerRadiusMetres":1.68,"nodePrefix":"well_recovery_lod1"},
-    {"variant":"recovery","lod":2,"triangles":1148,"outerRadiusMetres":1.68,"nodePrefix":"well_recovery_lod2"}
+    {
+      "variant": "standard",
+      "lod": 0,
+      "triangles": 6360,
+      "outerRadiusMetres": 1.68,
+      "nodePrefix": "well_standard_lod0"
+    },
+    {
+      "variant": "standard",
+      "lod": 1,
+      "triangles": 2248,
+      "outerRadiusMetres": 1.68,
+      "nodePrefix": "well_standard_lod1"
+    },
+    {
+      "variant": "standard",
+      "lod": 2,
+      "triangles": 956,
+      "outerRadiusMetres": 1.68,
+      "nodePrefix": "well_standard_lod2"
+    },
+    {
+      "variant": "accelerator",
+      "lod": 0,
+      "triangles": 6504,
+      "outerRadiusMetres": 1.88,
+      "nodePrefix": "well_accelerator_lod0"
+    },
+    {
+      "variant": "accelerator",
+      "lod": 1,
+      "triangles": 2344,
+      "outerRadiusMetres": 1.88,
+      "nodePrefix": "well_accelerator_lod1"
+    },
+    {
+      "variant": "accelerator",
+      "lod": 2,
+      "triangles": 992,
+      "outerRadiusMetres": 1.88,
+      "nodePrefix": "well_accelerator_lod2"
+    },
+    {
+      "variant": "precision",
+      "lod": 0,
+      "triangles": 6444,
+      "outerRadiusMetres": 1.68,
+      "nodePrefix": "well_precision_lod0"
+    },
+    {
+      "variant": "precision",
+      "lod": 1,
+      "triangles": 2308,
+      "outerRadiusMetres": 1.68,
+      "nodePrefix": "well_precision_lod1"
+    },
+    {
+      "variant": "precision",
+      "lod": 2,
+      "triangles": 980,
+      "outerRadiusMetres": 1.68,
+      "nodePrefix": "well_precision_lod2"
+    },
+    {
+      "variant": "recovery",
+      "lod": 0,
+      "triangles": 6804,
+      "outerRadiusMetres": 1.68,
+      "nodePrefix": "well_recovery_lod0"
+    },
+    {
+      "variant": "recovery",
+      "lod": 1,
+      "triangles": 2460,
+      "outerRadiusMetres": 1.68,
+      "nodePrefix": "well_recovery_lod1"
+    },
+    {
+      "variant": "recovery",
+      "lod": 2,
+      "triangles": 1148,
+      "outerRadiusMetres": 1.68,
+      "nodePrefix": "well_recovery_lod2"
+    }
   ],
   "requiredNodes": [
-    "well_standard_lod0","well_standard_lod1","well_standard_lod2",
-    "well_accelerator_lod0","well_accelerator_lod1","well_accelerator_lod2",
-    "well_precision_lod0","well_precision_lod1","well_precision_lod2",
-    "well_recovery_lod0","well_recovery_lod1","well_recovery_lod2"
+    "well_standard_lod0",
+    "well_standard_lod1",
+    "well_standard_lod2",
+    "well_accelerator_lod0",
+    "well_accelerator_lod1",
+    "well_accelerator_lod2",
+    "well_precision_lod0",
+    "well_precision_lod1",
+    "well_precision_lod2",
+    "well_recovery_lod0",
+    "well_recovery_lod1",
+    "well_recovery_lod2"
   ],
   "license": "Project-owned original procedural asset"
 }

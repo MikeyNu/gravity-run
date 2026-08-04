@@ -1,7 +1,8 @@
 import * as THREE from 'three';
-import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import type { QualityTier } from '../quality/detectQualityTier';
 import type { EnvironmentAssetKind } from './environmentLayout';
+import { checkBudget } from './AssetBudgetGuard';
+import { createGLTFLoader } from './createGLTFLoader';
 
 const MODEL_URL = '/assets/models/city-environment-kit.glb';
 const KINDS: readonly EnvironmentAssetKind[] = [
@@ -36,14 +37,15 @@ export function environmentLodProfile(quality: QualityTier): EnvironmentLodProfi
 }
 
 export class EnvironmentAssetLibrary {
-  readonly #loader = new GLTFLoader();
   readonly #quality: QualityTier;
+  readonly #renderer: THREE.WebGLRenderer;
   readonly #prototypes = new Map<string, THREE.Group>();
   #readyPromise: Promise<void> | null = null;
   #ready = false;
 
-  constructor(quality: QualityTier) {
+  constructor(quality: QualityTier, renderer: THREE.WebGLRenderer) {
     this.#quality = quality;
+    this.#renderer = renderer;
   }
 
   get ready(): boolean {
@@ -52,7 +54,7 @@ export class EnvironmentAssetLibrary {
 
   preload(): Promise<void> {
     if (this.#readyPromise) return this.#readyPromise;
-    this.#readyPromise = this.#loader
+    const promise = createGLTFLoader(this.#renderer)
       .loadAsync(MODEL_URL)
       .then((gltf) => {
         for (const kind of KINDS) {
@@ -82,12 +84,14 @@ export class EnvironmentAssetLibrary {
         }
         this.#ready = KINDS.every((kind) => this.#prototypes.has(`${kind}:2`));
         if (!this.#ready) throw new Error('City environment kit is missing required LOD prototypes.');
+        checkBudget(gltf.scene, this.#quality, 'EnvironmentAssetLibrary');
       })
       .catch((error: unknown) => {
         this.#ready = false;
         console.warn('[Gravity Run] City environment GLB unavailable; retaining skyline fallback.', error);
       });
-    return this.#readyPromise;
+    this.#readyPromise = promise;
+    return promise;
   }
 
   has(kind: EnvironmentAssetKind, lod: 0 | 1 | 2): boolean {

@@ -1,4 +1,5 @@
 import type { SimulationSnapshot } from '@gravity-run/simulation';
+import { MusicDirector } from './MusicDirector';
 
 const SOUND_URLS = {
   uiConfirm: '/assets/audio/ui-confirm.wav',
@@ -9,6 +10,7 @@ const SOUND_URLS = {
   fragment: '/assets/audio/fragment.wav',
   nearMiss: '/assets/audio/near-miss.wav',
   failure: '/assets/audio/failure.wav',
+  ambience: '/assets/audio/ambience-loop.ogg',
 } as const;
 
 type SoundName = keyof typeof SOUND_URLS;
@@ -16,11 +18,20 @@ type SoundName = keyof typeof SOUND_URLS;
 interface AudioSettingsDetail {
   masterVolume: number;
   muted: boolean;
+  musicVolume?: number;
+  sfxVolume?: number;
+  ambienceVolume?: number;
 }
 
 export class AudioDirector {
   #context: AudioContext | null = null;
   #masterGain: GainNode | null = null;
+  // Separate buses for independent volume control
+  #musicBus: GainNode | null = null;
+  #sfxBus: GainNode | null = null;
+  #ambienceBus: GainNode | null = null;
+  #musicDirector: MusicDirector | null = null;
+  #ambienceSource: AudioBufferSourceNode | null = null;
   #buffers = new Map<SoundName, AudioBuffer>();
   #loading: Promise<void> | null = null;
   #tetherSource: AudioBufferSourceNode | null = null;
@@ -28,8 +39,16 @@ export class AudioDirector {
   #lastProcessedTick = -1;
   #masterVolume = AudioDirector.#storedVolume();
   #muted = localStorage.getItem('gravity-run:muted') === 'true';
+  #musicVolume = AudioDirector.#storedBusVolume('music', 0.72);
+  #sfxVolume = AudioDirector.#storedBusVolume('sfx', 0.88);
+  #ambienceVolume = AudioDirector.#storedBusVolume('ambience', 0.45);
   #tetherRequested = false;
   #waitingForTetherBuffer = false;
+
+  static #storedBusVolume(bus: string, defaultValue: number): number {
+    const value = Number(localStorage.getItem(`gravity-run:${bus}-volume`) ?? defaultValue);
+    return Number.isFinite(value) ? Math.min(Math.max(value, 0), 1) : defaultValue;
+  }
 
   static #storedVolume(): number {
     const value = Number(localStorage.getItem('gravity-run:master-volume') ?? 0.78);
@@ -44,6 +63,15 @@ export class AudioDirector {
   }
 
   update(previous: SimulationSnapshot, current: SimulationSnapshot): void {
+    // Update music intensity based on game state
+    if (this.#musicDirector && this.#context) {
+      const speed01 = Math.min(Math.max(current.playerSpeed / 42, 0), 1);
+      const comboFactor = Math.min(current.combo / 8, 1) * 0.35;
+      const orbitFactor = current.targetLocked ? 0.2 : 0;
+      const intensity = Math.min(1, speed01 * 0.65 + comboFactor + orbitFactor);
+      this.#musicDirector.setIntensity(current.phase === 'failed' ? 0 : intensity);
+      this.#musicDirector.update(1 / 60);
+    }
     this.#updateTether(current);
     if (current.tick < this.#lastProcessedTick) {
       this.#lastProcessedTick = current.tick;
@@ -76,6 +104,12 @@ export class AudioDirector {
     window.removeEventListener('gravity-run:audio-settings', this.#onSettings as EventListener);
     window.removeEventListener('gravity-run:ui-confirm', this.#onUiConfirm);
     this.#stopTether();
+    this.#musicDirector?.dispose();
+    this.#musicDirector = null;
+    if (this.#ambienceSource) {
+      try { this.#ambienceSource.stop(); } catch { /* already stopped */ }
+      this.#ambienceSource = null;
+    }
     void this.#context?.close();
     this.#context = null;
     this.#buffers.clear();
@@ -85,10 +119,33 @@ export class AudioDirector {
     if (!this.#context) {
       const AudioContextConstructor = window.AudioContext;
       this.#context = new AudioContextConstructor({ latencyHint: 'interactive' });
+
+      // Bus graph: masterGain → destination
+      //   musicBus → masterGain
+      //   sfxBus → masterGain
+      //   ambienceBus → masterGain
       this.#masterGain = this.#context.createGain();
       this.#masterGain.connect(this.#context.destination);
+
+      this.#musicBus = this.#context.createGain();
+      this.#musicBus.gain.value = this.#musicVolume;
+      this.#musicBus.connect(this.#masterGain);
+
+      this.#sfxBus = this.#context.createGain();
+      this.#sfxBus.gain.value = this.#sfxVolume;
+      this.#sfxBus.connect(this.#masterGain);
+
+      this.#ambienceBus = this.#context.createGain();
+      this.#ambienceBus.gain.value = this.#ambienceVolume;
+      this.#ambienceBus.connect(this.#masterGain);
+
+      this.#musicDirector = new MusicDirector(this.#context, this.#musicBus);
+
       this.#applySettings();
-      this.#loading = this.#loadBuffers();
+      this.#loading = this.#loadBuffers().then(() => {
+        this.#musicDirector?.start();
+        this.#startAmbience();
+      });
     }
     if (this.#context.state === 'suspended') void this.#context.resume();
   };
@@ -96,6 +153,9 @@ export class AudioDirector {
   readonly #onSettings = (event: CustomEvent<AudioSettingsDetail>): void => {
     this.#masterVolume = Math.min(Math.max(event.detail.masterVolume, 0), 1);
     this.#muted = event.detail.muted;
+    if (event.detail.musicVolume !== undefined) this.#musicVolume = Math.min(Math.max(event.detail.musicVolume, 0), 1);
+    if (event.detail.sfxVolume !== undefined) this.#sfxVolume = Math.min(Math.max(event.detail.sfxVolume, 0), 1);
+    if (event.detail.ambienceVolume !== undefined) this.#ambienceVolume = Math.min(Math.max(event.detail.ambienceVolume, 0), 1);
     this.#applySettings();
   };
 
@@ -120,9 +180,9 @@ export class AudioDirector {
 
   #play(name: SoundName, gainValue: number, playbackRate: number): void {
     const context = this.#context;
-    const master = this.#masterGain;
+    const bus = this.#sfxBus ?? this.#masterGain;
     const buffer = this.#buffers.get(name);
-    if (!context || !master || this.#muted) return;
+    if (!context || !bus || this.#muted) return;
     if (!buffer) {
       void this.#loading?.then(() => this.#play(name, gainValue, playbackRate));
       return;
@@ -132,7 +192,7 @@ export class AudioDirector {
     source.buffer = buffer;
     source.playbackRate.value = playbackRate;
     gain.gain.value = gainValue;
-    source.connect(gain).connect(master);
+    source.connect(gain).connect(bus);
     source.start();
     source.addEventListener('ended', () => {
       source.disconnect();
@@ -140,9 +200,23 @@ export class AudioDirector {
     }, { once: true });
   }
 
+  #startAmbience(): void {
+    const context = this.#context;
+    const bus = this.#ambienceBus;
+    const buffer = this.#buffers.get('ambience');
+    if (!context || !bus || !buffer || this.#ambienceSource) return;
+    const source = context.createBufferSource();
+    source.buffer = buffer;
+    source.loop = true;
+    source.connect(bus);
+    source.start();
+    this.#ambienceSource = source;
+  }
+
   #startTether(): void {
     this.#tetherRequested = true;
-    if (this.#tetherSource || !this.#context || !this.#masterGain) return;
+    const bus = this.#sfxBus ?? this.#masterGain;
+    if (this.#tetherSource || !this.#context || !bus) return;
     const buffer = this.#buffers.get('tetherLoop');
     if (!buffer) {
       if (!this.#waitingForTetherBuffer) {
@@ -159,7 +233,7 @@ export class AudioDirector {
     source.buffer = buffer;
     source.loop = true;
     gain.gain.value = 0;
-    source.connect(gain).connect(this.#masterGain);
+    source.connect(gain).connect(bus);
     source.start();
     gain.gain.linearRampToValueAtTime(0.22, this.#context.currentTime + 0.08);
     this.#tetherSource = source;
@@ -193,8 +267,14 @@ export class AudioDirector {
   }
 
   #applySettings(): void {
-    if (!this.#masterGain || !this.#context) return;
-    const target = this.#muted ? 0 : this.#masterVolume;
-    this.#masterGain.gain.setTargetAtTime(target, this.#context.currentTime, 0.025);
+    if (!this.#context) return;
+    const now = this.#context.currentTime;
+    const muted = this.#muted;
+    if (this.#masterGain) {
+      this.#masterGain.gain.setTargetAtTime(muted ? 0 : this.#masterVolume, now, 0.025);
+    }
+    if (this.#musicBus) this.#musicBus.gain.setTargetAtTime(this.#musicVolume, now, 0.05);
+    if (this.#sfxBus) this.#sfxBus.gain.setTargetAtTime(this.#sfxVolume, now, 0.05);
+    if (this.#ambienceBus) this.#ambienceBus.gain.setTargetAtTime(this.#ambienceVolume, now, 0.05);
   }
 }

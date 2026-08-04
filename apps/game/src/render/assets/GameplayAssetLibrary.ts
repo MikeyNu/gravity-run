@@ -1,10 +1,11 @@
 import * as THREE from 'three';
-import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import type { HazardKind } from '@gravity-run/game-config';
 import type { QualityTier } from '../quality/detectQualityTier';
+import { checkBudget } from './AssetBudgetGuard';
+import { createGLTFLoader } from './createGLTFLoader';
 
 const MODEL_URL = '/assets/models/gameplay-props.glb';
-const KINDS = ['spire', 'blade', 'debris', 'collapse-gate', 'fragment'] as const;
+const KINDS = ['spire', 'blade', 'debris', 'collapse-gate', 'saw', 'piston', 'swinging-arm', 'fragment'] as const;
 
 export type GameplayAssetKind = HazardKind | 'fragment';
 
@@ -19,22 +20,26 @@ const REFERENCES: Readonly<Record<GameplayAssetKind, THREE.Vector3>> = Object.fr
   blade: new THREE.Vector3(1.8, 1.8, 0.32),
   debris: new THREE.Vector3(1, 1, 1),
   'collapse-gate': new THREE.Vector3(1.2, 3.8, 6.5),
+  saw: new THREE.Vector3(0.2, 0.92, 0.92),
+  piston: new THREE.Vector3(0.5, 0.8, 0.5),
+  'swinging-arm': new THREE.Vector3(0.25, 0.25, 3.5),
   fragment: new THREE.Vector3(0.55, 0.55, 0.55),
 });
 
 export class GameplayAssetLibrary {
-  readonly #loader = new GLTFLoader();
   readonly #quality: QualityTier;
+  readonly #renderer: THREE.WebGLRenderer;
   readonly #prototypes = new Map<GameplayAssetKind, THREE.Group>();
   #readyPromise: Promise<void> | null = null;
 
-  constructor(quality: QualityTier) {
+  constructor(quality: QualityTier, renderer: THREE.WebGLRenderer) {
     this.#quality = quality;
+    this.#renderer = renderer;
   }
 
   preload(): Promise<void> {
     if (this.#readyPromise) return this.#readyPromise;
-    this.#readyPromise = this.#loader
+    const promise = createGLTFLoader(this.#renderer)
       .loadAsync(MODEL_URL)
       .then((gltf) => {
         const lod = gameplayAssetLodForQuality(this.#quality);
@@ -58,11 +63,13 @@ export class GameplayAssetLibrary {
           });
           if (group.children.length > 0) this.#prototypes.set(kind, group);
         }
+        checkBudget(gltf.scene, this.#quality, 'GameplayAssetLibrary');
       })
       .catch((error: unknown) => {
         console.warn('[Gravity Run] Gameplay props GLB unavailable; using geometric fallback.', error);
       });
-    return this.#readyPromise;
+    this.#readyPromise = promise;
+    return promise;
   }
 
   has(kind: GameplayAssetKind): boolean {

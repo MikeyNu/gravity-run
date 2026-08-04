@@ -26,6 +26,7 @@ export interface OrbitStepInput {
   normal: Vec3;
   radius: number;
   tangentialSpeed: number;
+  radialSpeed: number;
   sinTheta: number;
   cosTheta: number;
 }
@@ -38,58 +39,48 @@ export interface OrbitStepResult {
 }
 
 const BASIS_EPSILON = 1e-5;
-
-const HALF_PI = 1.5707963267948966;
+const TAU = Math.PI * 2;
 
 export function deterministicSinCos(angle: number): { sin: number; cos: number } {
-  if (!Number.isFinite(angle)) return { sin: 0, cos: 1 };
-  const quadrant = Math.round(angle / HALF_PI);
-  const x = angle - quadrant * HALF_PI;
+  let x = angle % TAU;
+  if (x > Math.PI) x -= TAU;
+  else if (x < -Math.PI) x += TAU;
+
   const x2 = x * x;
-
-  const sinPolynomial = x * (
-    1 + x2 * (
-      -1 / 6 + x2 * (
-        1 / 120 + x2 * (
-          -1 / 5040 + x2 * (1 / 362880 + x2 * (-1 / 39916800))
-        )
-      )
-    )
-  );
-  const cosPolynomial = 1 + x2 * (
-    -1 / 2 + x2 * (
-      1 / 24 + x2 * (
-        -1 / 720 + x2 * (1 / 40320 + x2 * (-1 / 3628800))
-      )
-    )
-  );
-
-  switch ((quadrant % 4 + 4) % 4) {
-    case 0: return { sin: sinPolynomial, cos: cosPolynomial };
-    case 1: return { sin: cosPolynomial, cos: -sinPolynomial };
-    case 2: return { sin: -sinPolynomial, cos: -cosPolynomial };
-    default: return { sin: -cosPolynomial, cos: sinPolynomial };
-  }
+  const sin = x * (1 + x2 * (-1 / 6 + x2 * (1 / 120 + x2 * (-1 / 5040 + x2 / 362880))));
+  const cos = 1 + x2 * (-1 / 2 + x2 * (1 / 24 + x2 * (-1 / 720 + x2 / 40320)));
+  const magnitude = Math.sqrt(sin * sin + cos * cos);
+  if (magnitude <= Number.EPSILON) return { sin: 0, cos: 1 };
+  return { sin: sin / magnitude, cos: cos / magnitude };
 }
 
 export function buildOrbitBasis(
   playerPosition: Vec3,
   centre: Vec3,
   velocity: Vec3,
-  fallbackNormal: Vec3,
+  routeDirection: Vec3,
 ): OrbitBasis {
   const offset = subtract(playerPosition, centre);
   const radius = Math.max(length(offset), BASIS_EPSILON);
   const radial = scale(offset, 1 / radius);
 
   let normalCandidate = cross(radial, velocity);
-  if (length(normalCandidate) < BASIS_EPSILON) normalCandidate = reject(fallbackNormal, radial);
-  if (length(normalCandidate) < BASIS_EPSILON) normalCandidate = reject({ x: 0, y: 1, z: 0 }, radial);
-  if (length(normalCandidate) < BASIS_EPSILON) normalCandidate = reject({ x: 1, y: 0, z: 0 }, radial);
+  if (length(normalCandidate) < BASIS_EPSILON) {
+    normalCandidate = cross(radial, routeDirection);
+  }
+  if (length(normalCandidate) < BASIS_EPSILON) {
+    normalCandidate = reject({ x: 0, y: 1, z: 0 }, radial);
+  }
+  if (length(normalCandidate) < BASIS_EPSILON) {
+    normalCandidate = reject({ x: 1, y: 0, z: 0 }, radial);
+  }
 
-  const normal = normalize(normalCandidate);
+  let normal = normalize(normalCandidate);
   let tangent = normalize(cross(normal, radial));
-  if (dot(tangent, velocity) < 0) tangent = scale(tangent, -1);
+  if (dot(tangent, velocity) < 0) {
+    normal = scale(normal, -1);
+    tangent = scale(tangent, -1);
+  }
 
   return {
     radial,
@@ -109,7 +100,10 @@ export function stepConstrainedOrbit(input: OrbitStepInput): OrbitStepResult {
 
   return {
     position: add(input.centre, scale(radial, input.radius)),
-    velocity: scale(tangent, input.tangentialSpeed),
+    velocity: add(
+      scale(tangent, input.tangentialSpeed),
+      scale(radial, input.radialSpeed),
+    ),
     radial,
     tangent,
   };

@@ -11,6 +11,7 @@ export interface TargetSelectionInput {
   recentlyUsed: ReadonlySet<string>;
   excludedWellIds: ReadonlySet<string>;
   playerRadius: number;
+  recoveryBias?: number;
 }
 
 export interface TargetSelectionResult {
@@ -20,6 +21,8 @@ export interface TargetSelectionResult {
 
 export function selectGravityTarget(input: TargetSelectionInput): TargetSelectionResult {
   const forward = normalize(input.playerVelocity);
+  const bias = input.recoveryBias ?? 0;
+  const recoveryApproachCosine = bias > 0.35 ? -1 : -0.65;
   let best: GravityWellDefinition | null = null;
   let bestScore = Number.NEGATIVE_INFINITY;
 
@@ -32,7 +35,8 @@ export function selectGravityTarget(input: TargetSelectionInput): TargetSelectio
 
     const direction = normalize(offset);
     const alignment = dot(direction, forward);
-    if (alignment < well.allowedApproachCosine && well.class !== 'recovery') continue;
+    const approachThreshold = well.class === 'recovery' ? recoveryApproachCosine : well.allowedApproachCosine;
+    if (alignment < approachThreshold) continue;
 
     const obstruction = sweepSphereAgainstHazards(
       input.playerPosition,
@@ -52,8 +56,13 @@ export function selectGravityTarget(input: TargetSelectionInput): TargetSelectio
       well.authoredPriority;
 
     if (well.id === input.currentTargetId) score += 0.42;
-    if (input.recentlyUsed.has(well.id)) score -= 1.15;
-    if (well.class === 'recovery') score += input.playerPosition.y < -7 ? 0.9 : -0.15;
+    if (well.class === 'recovery') {
+      const posBonus = input.playerPosition.y < -7 ? 0.9 : -0.15;
+      score += posBonus + bias * 2.2;
+      if (input.recentlyUsed.has(well.id) && bias < 0.4) score -= 1.15;
+    } else {
+      if (input.recentlyUsed.has(well.id)) score -= 1.15;
+    }
 
     if (score > bestScore) {
       best = well;

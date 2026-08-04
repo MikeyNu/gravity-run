@@ -1,4 +1,5 @@
 import type { TickInput } from '@gravity-run/shared';
+import { useControlsStore } from '../../ui/controlsStore';
 
 type InputEventKind = 'press' | 'release';
 
@@ -13,6 +14,8 @@ export class InputBuffer {
   #sequence = 0;
   #held = false;
   #attached = false;
+  // Gamepad polling state
+  #gamepadHeld = false;
 
   constructor(target: Window) {
     this.#target = target;
@@ -43,9 +46,12 @@ export class InputBuffer {
   clear(): void {
     this.#events = [];
     this.#held = false;
+    this.#gamepadHeld = false;
   }
 
   consumeForTick(tick: number): TickInput {
+    this.#pollGamepad();
+
     const events = this.#events;
     this.#events = [];
 
@@ -59,6 +65,30 @@ export class InputBuffer {
     return { tick, held: this.#held, pressed, released };
   }
 
+  #pollGamepad(): void {
+    const gamepads = navigator.getGamepads();
+    if (!gamepads) return;
+    const buttonIndex = useControlsStore.getState().gamepadButton;
+    let anyConnectedHeld = false;
+    for (const gp of gamepads) {
+      if (!gp || !gp.connected) continue;
+      const button = gp.buttons[buttonIndex];
+      if (button && button.pressed) {
+        anyConnectedHeld = true;
+        break;
+      }
+    }
+    if (anyConnectedHeld && !this.#gamepadHeld && !this.#held) {
+      this.#gamepadHeld = true;
+      this.#held = true;
+      this.#push('press');
+    } else if (!anyConnectedHeld && this.#gamepadHeld) {
+      this.#gamepadHeld = false;
+      this.#held = false;
+      this.#push('release');
+    }
+  }
+
   readonly #onPress = (event: PointerEvent): void => {
     if (event.button !== 0 || this.#held || this.#isInterfaceTarget(event.target)) return;
     event.preventDefault();
@@ -70,11 +100,15 @@ export class InputBuffer {
     if (!this.#held) return;
     event.preventDefault();
     this.#held = false;
+    this.#gamepadHeld = false;
     this.#push('release');
   };
 
   readonly #onKeyDown = (event: KeyboardEvent): void => {
-    if ((event.code !== 'Space' && event.code !== 'Enter') || event.repeat || this.#held) return;
+    const { primaryKey, isListening } = useControlsStore.getState();
+    if (isListening) return; // rebinding in progress — ignore game input
+    const matchesPrimary = event.code === primaryKey || event.code === 'Enter';
+    if (!matchesPrimary || event.repeat || this.#held) return;
     if (this.#isInterfaceTarget(document.activeElement)) return;
     event.preventDefault();
     this.#held = true;
@@ -82,15 +116,19 @@ export class InputBuffer {
   };
 
   readonly #onKeyUp = (event: KeyboardEvent): void => {
-    if ((event.code !== 'Space' && event.code !== 'Enter') || !this.#held) return;
+    const { primaryKey } = useControlsStore.getState();
+    const matchesPrimary = event.code === primaryKey || event.code === 'Enter';
+    if (!matchesPrimary || !this.#held) return;
     event.preventDefault();
     this.#held = false;
+    this.#gamepadHeld = false;
     this.#push('release');
   };
 
   readonly #onBlur = (): void => {
     if (!this.#held) return;
     this.#held = false;
+    this.#gamepadHeld = false;
     this.#push('release');
   };
 

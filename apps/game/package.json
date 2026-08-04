@@ -11,7 +11,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "clean": "rm -rf dist .vite",
-    "predev": "cd ../.. && python3 tools/asset-authoring/generate_runtime_assets.py",
+    "predev": "node -e \"/* predev skipped in local dev */ process.exit(0)\"",
     "prebuild": "cd ../.. && python3 tools/asset-authoring/generate_runtime_assets.py"
   },
   "dependencies": {

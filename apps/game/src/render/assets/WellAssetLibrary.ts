@@ -1,23 +1,25 @@
 import * as THREE from 'three';
-import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import type { GravityWellClass } from '@gravity-run/game-config';
 import type { QualityTier } from '../quality/detectQualityTier';
+import { checkBudget } from './AssetBudgetGuard';
+import { createGLTFLoader } from './createGLTFLoader';
 
 const MODEL_URL = '/assets/models/gravity-well-family.glb';
 
 export class WellAssetLibrary {
-  readonly #loader = new GLTFLoader();
   readonly #quality: QualityTier;
+  readonly #renderer: THREE.WebGLRenderer;
   readonly #prototypes = new Map<GravityWellClass, THREE.Group>();
   #readyPromise: Promise<void> | null = null;
 
-  constructor(quality: QualityTier) {
+  constructor(quality: QualityTier, renderer: THREE.WebGLRenderer) {
     this.#quality = quality;
+    this.#renderer = renderer;
   }
 
   preload(): Promise<void> {
     if (this.#readyPromise) return this.#readyPromise;
-    this.#readyPromise = this.#loader.loadAsync(MODEL_URL).then((gltf) => {
+    const promise = createGLTFLoader(this.#renderer).loadAsync(MODEL_URL).then((gltf) => {
       const lod = this.#lodForQuality();
       for (const kind of ['standard', 'accelerator', 'precision', 'recovery'] as const) {
         const prefix = `well_${kind}_lod${lod}_`;
@@ -38,10 +40,12 @@ export class WellAssetLibrary {
         });
         if (group.children.length > 0) this.#prototypes.set(kind, group);
       }
+      checkBudget(gltf.scene, this.#quality, 'WellAssetLibrary');
     }).catch((error: unknown) => {
       console.warn('[Gravity Run] Gravity-well GLB unavailable; using procedural fallback.', error);
     });
-    return this.#readyPromise;
+    this.#readyPromise = promise;
+    return promise;
   }
 
   has(kind: GravityWellClass): boolean {

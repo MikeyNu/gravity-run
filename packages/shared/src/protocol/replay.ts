@@ -32,6 +32,23 @@ export interface ReplaySubmission {
   };
 }
 
+/**
+ * Leaderboard category derived from the replay header.
+ * Assisted and standard runs are always kept in separate categories.
+ */
+export type LeaderboardCategory =
+  | 'endless'
+  | 'endless-assisted'
+  | 'daily'
+  | 'daily-assisted'
+  | 'practice';
+
+export function replayLeaderboardCategory(header: ReplayHeader): LeaderboardCategory {
+  if (header.mode === 'practice') return 'practice';
+  if (header.mode === 'daily') return header.assisted ? 'daily-assisted' : 'daily';
+  return header.assisted ? 'endless-assisted' : 'endless';
+}
+
 export interface ReplayEnvelope<T> {
   protocol: 'gravity-run/replay';
   version: 2;

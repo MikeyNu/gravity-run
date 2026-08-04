@@ -40,9 +40,11 @@ export interface SimulationSnapshot {
   failureReason: FailureReason;
   countdownTicks: number;
   checksum: string;
+  worldOriginX: number;
   modules: readonly CourseModuleDefinition[];
   wells: readonly GravityWellDefinition[];
   hazards: readonly HazardDefinition[];
   pickups: readonly FragmentDefinition[];
   collectedFragmentIds: readonly string[];
+  targetIsDeadEnd: boolean;
 }

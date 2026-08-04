@@ -33,7 +33,9 @@ import {
   type OrbitBasis,
 } from '../movement/orbitMath';
 import { generateCourseWindow } from '../procedural/courseGenerator';
+import { buildRouteGraph, type RouteGraph } from '../routing/RouteGraph';
 import { ReplayRecorder } from '../replay/ReplayRecorder';
+import { RecoveryFairnessSystem } from '../scoring/RecoveryFairnessSystem';
 import { ScoreSystem } from '../scoring/ScoreSystem';
 import { selectGravityTarget } from '../targeting/selectTarget';
 import type { FailureReason, MovementPhase, SimulationSnapshot } from './types';
@@ -41,10 +43,12 @@ import type { FailureReason, MovementPhase, SimulationSnapshot } from './types';
 const START_POSITION: Vec3 = { x: 0, y: 1.5, z: 0 };
 const START_VELOCITY: Vec3 = { x: 13.5, y: 1.2, z: 0 };
 const COUNTDOWN_TICKS = 120;
+const REBASE_PERIOD = 256;
 
 export class GravityRunSimulation implements SimulationPort {
   readonly #seed: string;
   readonly #score = new ScoreSystem();
+  readonly #fairness = new RecoveryFairnessSystem();
   #replay: ReplayRecorder;
   #tick = 0;
   #elapsedSeconds = 0;
@@ -71,6 +75,8 @@ export class GravityRunSimulation implements SimulationPort {
   #collapseX = -courseConfig.collapseStartDistance;
   #failureReason: FailureReason = null;
   #furthestX = 0;
+  #hazardBasePositions = new Map<string, Vec3>();
+  #routeGraph: RouteGraph = { successors: () => [], isDeadEnd: () => false, forwardDepth: () => 0 };
 
   constructor(seed = 'gravity-run-default') {
     this.#seed = seed;
@@ -101,6 +107,7 @@ export class GravityRunSimulation implements SimulationPort {
     this.#failureReason = null;
     this.#furthestX = 0;
     this.#score.reset();
+    this.#fairness.reset();
     this.#replay = new ReplayRecorder(this.#seed);
     this.#rebuildCourse();
   }
@@ -122,6 +129,7 @@ export class GravityRunSimulation implements SimulationPort {
     }
 
     this.#refreshCourseWindow();
+    this.#stepKinematicHazards();
     this.#rearmReleasedWells();
     this.#updateTargetPreview();
 
@@ -174,11 +182,12 @@ export class GravityRunSimulation implements SimulationPort {
 
   getSnapshot(): SimulationSnapshot {
     const score = this.#score.snapshot();
+    const worldOriginX = Math.floor(this.#furthestX / REBASE_PERIOD) * REBASE_PERIOD;
     return Object.freeze({
       tick: this.#tick,
       elapsedSeconds: this.#elapsedSeconds,
       phase: this.#phase,
-      playerPosition: cloneVec3(this.#position),
+      playerPosition: { x: this.#position.x - worldOriginX, y: this.#position.y, z: this.#position.z },
       playerVelocity: cloneVec3(this.#velocity),
       playerSpeed: length(this.#velocity),
       playerRadius: movementConfig.playerRadius,
@@ -193,15 +202,19 @@ export class GravityRunSimulation implements SimulationPort {
       fragments: score.fragments,
       nearMisses: score.nearMisses,
       lastReleaseGrade: score.lastReleaseGrade,
-      collapseX: this.#collapseX,
+      collapseX: this.#collapseX - worldOriginX,
       failureReason: this.#failureReason,
       countdownTicks: this.#countdownTicks,
       checksum: this.#checksum(),
+      worldOriginX,
       modules: this.#modules,
       wells: this.#wells,
       hazards: this.#hazards,
       pickups: this.#pickups,
       collectedFragmentIds: [...this.#collectedFragments],
+      targetIsDeadEnd: this.#routeGraph.isDeadEnd(
+        (this.#activeTarget ?? this.#previewTarget)?.id ?? '',
+      ),
     });
   }
 
@@ -460,6 +473,7 @@ export class GravityRunSimulation implements SimulationPort {
   }
 
   #updateTargetPreview(): void {
+    this.#fairness.update(length(this.#velocity), this.#position.y);
     const result = selectGravityTarget({
       playerPosition: this.#position,
       playerVelocity: this.#velocity,
@@ -469,6 +483,7 @@ export class GravityRunSimulation implements SimulationPort {
       recentlyUsed: this.#recentlyUsed,
       excludedWellIds: this.#blockedTargetIds,
       playerRadius: movementConfig.playerRadius,
+      recoveryBias: this.#fairness.recoveryBias,
     });
     this.#previewTarget = result.well;
   }
@@ -535,8 +550,14 @@ export class GravityRunSimulation implements SimulationPort {
 
   #flattenCourse(): void {
     this.#wells = this.#modules.flatMap((module) => module.wells);
-    this.#hazards = this.#modules.flatMap((module) => module.hazards);
+    this.#hazards = this.#modules.flatMap((module) =>
+      module.hazards.map((h) => ({ ...h, position: { ...h.position } }))
+    );
+    this.#hazardBasePositions = new Map(
+      this.#hazards.map((h) => [h.id, { x: h.position.x, y: h.position.y, z: h.position.z }])
+    );
     this.#pickups = this.#modules.flatMap((module) => module.fragments);
+    this.#routeGraph = buildRouteGraph(this.#wells, movementConfig);
 
     const wellIds = new Set(this.#wells.map((well) => well.id));
     const hazardIds = new Set(this.#hazards.map((hazard) => hazard.id));
@@ -556,6 +577,24 @@ export class GravityRunSimulation implements SimulationPort {
     }
     for (const id of this.#collectedFragments) {
       if (!pickupIds.has(id)) this.#collectedFragments.delete(id);
+    }
+  }
+
+  #stepKinematicHazards(): void {
+    const t = this.#elapsedSeconds;
+    const TAU = Math.PI * 2;
+    for (const h of this.#hazards) {
+      if (h.motion.kind === 'static') continue;
+      const base = this.#hazardBasePositions.get(h.id);
+      if (!base) continue;
+      const m = h.motion;
+      if (m.kind === 'oscillate' || m.kind === 'pendulum') {
+        const offset = m.amplitude * Math.sin(TAU * t / m.period + m.phase);
+        h.position.x = base.x + (m.axis === 'x' ? offset : 0);
+        h.position.y = base.y + (m.axis === 'y' ? offset : 0);
+        h.position.z = base.z + (m.axis === 'z' ? offset : 0);
+      }
+      // 'rotate' kind: AABB is pre-expanded to bounding sphere at generation time; position is static
     }
   }
 
