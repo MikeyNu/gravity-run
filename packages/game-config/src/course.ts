@@ -24,6 +24,9 @@ export interface GravityWellDefinition {
   minimumOrbitRadius: number;
   maximumOrbitRadius: number;
   acquisitionRadius: number;
+  latchRadius: number;
+  allowedApproachCosine: number;
+  authoredPriority: number;
   maximumTangentialSpeed: number;
   orbitAcceleration: number;
   energyBudget: number;

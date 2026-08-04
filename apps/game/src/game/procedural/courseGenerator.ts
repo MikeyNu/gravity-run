@@ -51,10 +51,46 @@ function well(
   risk: number,
 ): GravityWellDefinition {
   const classTuning = {
-    standard: { orbit: 28, acceleration: 8, energy: 8, boost: 1.5, acquire: 18 },
-    accelerator: { orbit: 36, acceleration: 12, energy: 12, boost: 2.7, acquire: 19 },
-    precision: { orbit: 30, acceleration: 7, energy: 6, boost: 1.9, acquire: 16 },
-    recovery: { orbit: 23, acceleration: 6, energy: 5, boost: 1.1, acquire: 22 },
+    standard: {
+      orbit: 28,
+      acceleration: 8,
+      energy: 8,
+      boost: 1.5,
+      acquire: 18,
+      latch: 11.5,
+      approach: -0.22,
+      priority: 0.15,
+    },
+    accelerator: {
+      orbit: 36,
+      acceleration: 12,
+      energy: 12,
+      boost: 2.7,
+      acquire: 19,
+      latch: 12,
+      approach: -0.18,
+      priority: 0.2,
+    },
+    precision: {
+      orbit: 30,
+      acceleration: 7,
+      energy: 6,
+      boost: 1.9,
+      acquire: 16,
+      latch: 9.5,
+      approach: -0.08,
+      priority: 0.12,
+    },
+    recovery: {
+      orbit: 23,
+      acceleration: 6,
+      energy: 5,
+      boost: 1.1,
+      acquire: 22,
+      latch: 14,
+      approach: -0.65,
+      priority: -0.05,
+    },
   }[className];
 
   return {
@@ -67,6 +103,9 @@ function well(
     minimumOrbitRadius: className === 'precision' ? 4.7 : 5.5,
     maximumOrbitRadius: className === 'recovery' ? 16 : 13.5,
     acquisitionRadius: classTuning.acquire,
+    latchRadius: classTuning.latch,
+    allowedApproachCosine: classTuning.approach,
+    authoredPriority: classTuning.priority,
     maximumTangentialSpeed: classTuning.orbit,
     orbitAcceleration: classTuning.acceleration,
     energyBudget: classTuning.energy,
@@ -94,7 +133,9 @@ export function generateCourseModule(seed: string, moduleId: number): CourseModu
   const random = new Xoshiro128StarStar(seedFromString(`${seed}:${moduleId}`));
   const length = courseConfig.moduleLength;
   const origin = { x: moduleId * length, y: 0, z: 0 };
-  const archetype = moduleId === 0 ? 'launch' : ARCHETYPES[Math.floor(random.nextFloat() * ARCHETYPES.length)] ?? 'wide-orbit';
+  const archetype = moduleId === 0
+    ? 'launch'
+    : ARCHETYPES[Math.floor(random.nextFloat() * ARCHETYPES.length)] ?? 'wide-orbit';
   const wells: GravityWellDefinition[] = [];
   const hazards: HazardDefinition[] = [];
   const fragments: FragmentDefinition[] = [];
@@ -146,7 +187,15 @@ export function generateCourseModule(seed: string, moduleId: number): CourseModu
     wells.push(well(moduleId, 0, { x: x(11), y: 2, z: -4 }, { x: 1, y: 0, z: 0.08 }, 'accelerator', 0.65));
     wells.push(well(moduleId, 1, { x: x(38), y: -1, z: 4 }, { x: 1, y: 0.06, z: -0.05 }, 'standard', 0.5));
     for (let index = 0; index < 7; index += 1) {
-      hazards.push(hazard(moduleId, index, 'debris', { x: x(18 + randomRange(random, 0, 16)), y: randomRange(random, -5, 7), z: randomRange(random, -8, 8) }, { x: randomRange(random, 0.55, 1.5), y: randomRange(random, 0.55, 1.5), z: randomRange(random, 0.55, 1.5) }));
+      hazards.push(hazard(moduleId, index, 'debris', {
+        x: x(18 + randomRange(random, 0, 16)),
+        y: randomRange(random, -5, 7),
+        z: randomRange(random, -8, 8),
+      }, {
+        x: randomRange(random, 0.55, 1.5),
+        y: randomRange(random, 0.55, 1.5),
+        z: randomRange(random, 0.55, 1.5),
+      }));
     }
   }
 

@@ -15,6 +15,19 @@
       }
     },
     {
+      "id": "model/gameplay-props-v1",
+      "type": "model",
+      "source": "tools/asset-authoring/generate_gameplay_props.py",
+      "generator": "tools/asset-authoring/generate_gameplay_props.py",
+      "runtime": "apps/game/public/assets/models/gameplay-props.glb",
+      "requiredForCoreLoad": false,
+      "license": "Project-owned original procedural asset",
+      "budget": {
+        "transferKilobytes": 4500,
+        "gpuMegabytes": 34
+      }
+    },
+    {
       "id": "environment/city-environment-kit-v1",
       "type": "model",
       "source": "tools/asset-authoring/generate_city_environment.py",
