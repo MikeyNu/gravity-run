@@ -41,6 +41,7 @@ export class TetherRibbon {
     this.#geometry.setAttribute('color', new THREE.BufferAttribute(this.#colors, 3));
     this.#geometry.setAttribute('aAlpha', new THREE.BufferAttribute(this.#alphas, 1));
     this.#material = new THREE.ShaderMaterial({
+      glslVersion: THREE.GLSL3,
       transparent: true,
       depthWrite: false,
       blending: THREE.AdditiveBlending,
@@ -49,10 +50,10 @@ export class TetherRibbon {
       side: THREE.DoubleSide,
       uniforms: { uOpacity: { value: 0 } },
       vertexShader: `
-        attribute vec3 color;
-        attribute float aAlpha;
-        varying vec3 vColor;
-        varying float vAlpha;
+        in vec3 color;
+        in float aAlpha;
+        out vec3 vColor;
+        out float vAlpha;
         void main() {
           vColor = color;
           vAlpha = aAlpha;
@@ -60,11 +61,13 @@ export class TetherRibbon {
         }
       `,
       fragmentShader: `
+        precision mediump float;
+        in vec3 vColor;
+        in float vAlpha;
         uniform float uOpacity;
-        varying vec3 vColor;
-        varying float vAlpha;
+        out vec4 pc_fragColor;
         void main() {
-          gl_FragColor = vec4(vColor * 2.8, vAlpha * uOpacity);
+          pc_fragColor = vec4(vColor * 2.8, vAlpha * uOpacity);
         }
       `,
     });

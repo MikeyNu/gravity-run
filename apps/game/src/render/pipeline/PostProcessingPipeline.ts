@@ -40,10 +40,29 @@ export class PostProcessingPipeline {
     }
 
     renderer.toneMapping = THREE.NoToneMapping;
-    const composer = new EffectComposer(renderer, {
-      frameBufferType: quality === 'mobile' ? THREE.UnsignedByteType : THREE.HalfFloatType,
-    });
-    composer.addPass(new RenderPass(scene, camera));
+    // EffectComposer expects a WebGLRenderer exposing getContext().getContextAttributes().
+    // If the provided renderer is a WebGPURenderer or otherwise doesn't expose that API,
+    // fall back to direct rendering to avoid a runtime exception.
+    let composer: EffectComposer | null = null;
+    try {
+      const gl = (renderer as any).getContext && (renderer as any).getContext();
+      if (!gl || typeof gl.getContextAttributes !== 'function') throw new Error('renderer lacks WebGL context attributes');
+      composer = new EffectComposer(renderer as unknown as THREE.WebGLRenderer, {
+        frameBufferType: quality === 'mobile' ? THREE.UnsignedByteType : THREE.HalfFloatType,
+      });
+      composer.addPass(new RenderPass(scene, camera));
+    } catch (err) {
+      // Fallback: disable composer and proceed with direct rendering.
+      // This happens on non-WebGL backends (e.g. WebGPU) where postprocessing isn't supported yet.
+      // eslint-disable-next-line no-console
+      console.warn('[Gravity Run] PostProcessingPipeline disabled:', err instanceof Error ? err.message : err);
+      composer = null;
+    }
+
+    if (!composer) {
+      this.#composer = null;
+      return;
+    }
 
     const bloom = new BloomEffect({
       intensity: quality === 'cinematic' ? 0.72 : quality === 'desktop' ? 0.58 : 0.34,

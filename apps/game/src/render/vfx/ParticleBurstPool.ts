@@ -71,6 +71,7 @@ export class ParticleBurstPool {
     this.#geometry.setAttribute('aSize', new THREE.BufferAttribute(this.#sizes, 1));
     this.#geometry.setAttribute('aAlpha', new THREE.BufferAttribute(this.#alphas, 1));
     this.#material = new THREE.ShaderMaterial({
+      glslVersion: THREE.GLSL3,
       transparent: true,
       depthWrite: false,
       blending: THREE.AdditiveBlending,
@@ -78,11 +79,12 @@ export class ParticleBurstPool {
       vertexColors: true,
       uniforms: { uPixelRatio: { value: Math.min(window.devicePixelRatio || 1, 2) } },
       vertexShader: `
-        attribute vec3 color;
-        attribute float aSize;
-        attribute float aAlpha;
-        varying vec3 vColor;
-        varying float vAlpha;
+        precision mediump float;
+        in vec3 color;
+        in float aSize;
+        in float aAlpha;
+        out vec3 vColor;
+        out float vAlpha;
         uniform float uPixelRatio;
         void main() {
           vColor = color;
@@ -93,13 +95,15 @@ export class ParticleBurstPool {
         }
       `,
       fragmentShader: `
-        varying vec3 vColor;
-        varying float vAlpha;
+        precision mediump float;
+        in vec3 vColor;
+        in float vAlpha;
+        out vec4 pc_fragColor;
         void main() {
           vec2 centred = gl_PointCoord - vec2(0.5);
           float radius = length(centred) * 2.0;
           float soft = 1.0 - smoothstep(0.35, 1.0, radius);
-          gl_FragColor = vec4(vColor * 2.4, vAlpha * soft);
+          pc_fragColor = vec4(vColor * 2.4, vAlpha * soft);
         }
       `,
     });
