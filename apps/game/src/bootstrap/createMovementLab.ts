@@ -1,7 +1,7 @@
 import { movementConfig } from '@gravity-run/game-config';
+import { GravityRunSimulation } from '@gravity-run/simulation';
 import { GameRuntime } from '../game/core/GameRuntime';
 import { InputBuffer } from '../game/input/InputBuffer';
-import { GravityRunSimulation } from '../game/simulation/GravityRunSimulation';
 import { ThreeScene } from '../render/ThreeScene';
 import { detectQualityTier } from '../render/quality/detectQualityTier';
 import { useHudStore } from '../ui/hudStore';

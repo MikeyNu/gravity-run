@@ -1,4 +1,4 @@
-import type { SimulationSnapshot } from '../game/simulation/types';
+import type { SimulationSnapshot } from '@gravity-run/simulation';
 
 const SOUND_URLS = {
   uiConfirm: '/assets/audio/ui-confirm.wav',
@@ -177,16 +177,23 @@ export class AudioDirector {
 
   #stopTether(): void {
     this.#tetherRequested = false;
-    if (!this.#tetherSource) return;
-    try { this.#tetherSource.stop(); } catch { /* already stopped */ }
-    this.#tetherSource.disconnect();
-    this.#tetherGain?.disconnect();
+    const source = this.#tetherSource;
+    const gain = this.#tetherGain;
+    if (!source || !gain || !this.#context) return;
+    gain.gain.cancelScheduledValues(this.#context.currentTime);
+    gain.gain.setValueAtTime(gain.gain.value, this.#context.currentTime);
+    gain.gain.linearRampToValueAtTime(0, this.#context.currentTime + 0.06);
+    source.stop(this.#context.currentTime + 0.065);
+    source.addEventListener('ended', () => {
+      source.disconnect();
+      gain.disconnect();
+    }, { once: true });
     this.#tetherSource = null;
     this.#tetherGain = null;
   }
 
   #applySettings(): void {
-    if (!this.#context || !this.#masterGain) return;
+    if (!this.#masterGain || !this.#context) return;
     const target = this.#muted ? 0 : this.#masterVolume;
     this.#masterGain.gain.setTargetAtTime(target, this.#context.currentTime, 0.025);
   }
