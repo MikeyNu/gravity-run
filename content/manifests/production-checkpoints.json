@@ -32,12 +32,12 @@
     },
     {
       "id": "gameplay-props",
-      "status": "pending",
+      "status": "in_progress",
       "evidence": []
     },
     {
       "id": "modular-city-environment-kit",
-      "status": "in_progress",
+      "status": "complete",
       "evidence": [
         "tools/asset-authoring/generate_city_environment.py",
         "tools/asset-authoring/qa_city_environment.py",
