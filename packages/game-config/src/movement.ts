@@ -18,6 +18,8 @@ export interface MovementConfig {
   collisionSkin: number;
   latchBufferTicks: number;
   releaseCoyoteTicks: number;
+  radialReleaseRetention: number;
+  releasedWellRearmDistance: number;
   nearMissPadding: number;
   failureFloorY: number;
 }
@@ -40,6 +42,8 @@ export const movementConfig: Readonly<MovementConfig> = Object.freeze({
   collisionSkin: 0.035,
   latchBufferTicks: 7,
   releaseCoyoteTicks: 4,
+  radialReleaseRetention: 0.28,
+  releasedWellRearmDistance: 5,
   nearMissPadding: 0.9,
   failureFloorY: -22,
 });
