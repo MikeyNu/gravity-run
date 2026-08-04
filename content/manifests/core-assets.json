@@ -1,59 +1,52 @@
 {
-  "version": 1,
+  "version": 2,
   "assets": [
     {
-      "id": "character/courier-lod1",
+      "id": "well/gravity-well-family-v1",
       "type": "model",
-      "source": "content/source/blender/characters/courier.blend",
-      "runtime": "content/exported/characters/courier-lod1.glb",
+      "source": "content/source/textures/gravity-wells/",
+      "generator": "tools/asset-authoring/generate_gravity_wells.py",
+      "runtime": "apps/game/public/assets/models/gravity-well-family.glb",
       "requiredForCoreLoad": true,
-      "budget": {
-        "transferKilobytes": 520,
-        "gpuMegabytes": 18
-      }
+      "license": "Project-owned original procedural asset",
+      "budget": { "transferKilobytes": 3400, "gpuMegabytes": 28 }
     },
     {
-      "id": "well/standard-lod1",
-      "type": "model",
-      "source": "content/source/blender/wells/standard-well.blend",
-      "runtime": "content/exported/props/standard-well-lod1.glb",
-      "requiredForCoreLoad": true,
-      "budget": {
-        "transferKilobytes": 340,
-        "gpuMegabytes": 10
-      }
-    },
-    {
-      "id": "module/tutorial-orbit",
-      "type": "module",
-      "source": "content/source/blender/modules/tutorial-orbit.blend",
-      "runtime": "content/exported/modules/tutorial-orbit.glb",
-      "requiredForCoreLoad": true,
-      "budget": {
-        "transferKilobytes": 1050,
-        "gpuMegabytes": 32
-      }
-    },
-    {
-      "id": "texture/core-industrial",
+      "id": "ui/gravity-run-logo",
       "type": "texture",
-      "source": "content/source/textures/core-industrial/",
-      "runtime": "content/exported/textures/core-industrial.ktx2",
-      "requiredForCoreLoad": true,
-      "budget": {
-        "transferKilobytes": 780,
-        "gpuMegabytes": 24
-      }
+      "source": "apps/game/public/brand/gravity-run-logo.svg",
+      "runtime": "apps/game/public/brand/gravity-run-logo.svg",
+      "requiredForCoreLoad": false,
+      "license": "Project-owned original vector asset",
+      "budget": { "transferKilobytes": 18, "gpuMegabytes": 1 }
     },
     {
-      "id": "audio/core-movement",
+      "id": "ui/gravity-character-roster",
+      "type": "texture",
+      "source": "apps/game/public/ui/characters/gravity-characters.svg",
+      "runtime": "apps/game/public/ui/characters/gravity-characters.svg",
+      "requiredForCoreLoad": false,
+      "license": "Project-owned original vector asset",
+      "budget": { "transferKilobytes": 34, "gpuMegabytes": 2 }
+    },
+    {
+      "id": "ui/gravity-flow-cards",
+      "type": "texture",
+      "source": "apps/game/public/ui/flow/gravity-flow-cards.svg",
+      "runtime": "apps/game/public/ui/flow/gravity-flow-cards.svg",
+      "requiredForCoreLoad": false,
+      "license": "Project-owned original vector asset",
+      "budget": { "transferKilobytes": 30, "gpuMegabytes": 2 }
+    },
+    {
+      "id": "audio/gameplay-feedback-v1",
       "type": "audio",
-      "source": "content/source/audio/core-movement/",
-      "runtime": "content/exported/audio/core-movement.opus",
-      "requiredForCoreLoad": true,
-      "budget": {
-        "transferKilobytes": 390
-      }
+      "source": "tools/asset-authoring/generate_audio_assets.py",
+      "generator": "tools/asset-authoring/generate_audio_assets.py",
+      "runtime": "apps/game/public/assets/audio/",
+      "requiredForCoreLoad": false,
+      "license": "Project-owned original procedural audio",
+      "budget": { "transferKilobytes": 300 }
     }
   ]
 }

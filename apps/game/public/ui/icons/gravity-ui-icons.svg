@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+  <defs>
+    <linearGradient id="gravity-accent" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#FFD45E"/>
+      <stop offset="1" stop-color="#F18A0A"/>
+    </linearGradient>
+  </defs>
+  <symbol id="mouse" viewBox="0 0 64 64">
+    <path d="M32 5C19.85 5 12 13.1 12 25.9v12.2C12 51 19.85 59 32 59s20-8 20-20.9V25.9C52 13.1 44.15 5 32 5Z" fill="none" stroke="currentColor" stroke-width="3"/>
+    <path d="M32 6.5v20" stroke="currentColor" stroke-width="3"/>
+    <path d="M14 28h36" stroke="currentColor" stroke-width="2" opacity=".35"/>
+    <rect x="26.5" y="9" width="11" height="16" rx="5.5" fill="url(#gravity-accent)"/>
+  </symbol>
+  <symbol id="target" viewBox="0 0 64 64">
+    <circle cx="32" cy="32" r="20" fill="none" stroke="currentColor" stroke-width="3"/>
+    <circle cx="32" cy="32" r="9" fill="none" stroke="currentColor" stroke-width="3" opacity=".75"/>
+    <circle cx="32" cy="32" r="3.5" fill="url(#gravity-accent)"/>
+    <path d="M32 3v13M32 48v13M3 32h13M48 32h13" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+    <path d="M13 13l7 7M44 44l7 7M51 13l-7 7M20 44l-7 7" stroke="currentColor" stroke-width="2" opacity=".4"/>
+  </symbol>
+  <symbol id="risk" viewBox="0 0 64 64">
+    <path d="M32 5 56 32 32 59 8 32 32 5Z" fill="none" stroke="currentColor" stroke-width="3"/>
+    <path d="M32 16 45 32 32 48 19 32 32 16Z" fill="none" stroke="currentColor" stroke-width="2" opacity=".5"/>
+    <path d="M32 21v15" stroke="url(#gravity-accent)" stroke-width="4" stroke-linecap="round"/>
+    <circle cx="32" cy="43" r="2.5" fill="url(#gravity-accent)"/>
+  </symbol>
+  <symbol id="infinity" viewBox="0 0 64 64">
+    <path d="M8 33c0-9 6-15 14-15 8.5 0 14.2 7.6 20 15 4.1 5.3 7.4 9 12 9 4 0 7-3.2 7-9s-3-9-7-9c-4.6 0-7.9 3.7-12 9-5.8 7.4-11.5 15-20 15-8 0-14-6-14-15Z" transform="translate(-2 -1) scale(1.06)" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M20 27c4.5 0 8.3 4.5 12 9" fill="none" stroke="url(#gravity-accent)" stroke-width="3" stroke-linecap="round"/>
+  </symbol>
+  <symbol id="crown" viewBox="0 0 64 64">
+    <path d="m8 18 13 12 11-19 11 19 13-12-6 30H14L8 18Z" fill="none" stroke="currentColor" stroke-width="3" stroke-linejoin="round"/>
+    <path d="M15 49h34M17 55h30" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+    <circle cx="8" cy="17" r="3" fill="url(#gravity-accent)"/>
+    <circle cx="32" cy="10" r="3" fill="url(#gravity-accent)"/>
+    <circle cx="56" cy="17" r="3" fill="url(#gravity-accent)"/>
+  </symbol>
+  <symbol id="pause" viewBox="0 0 64 64">
+    <rect x="14" y="9" width="13" height="46" rx="4" fill="currentColor"/>
+    <rect x="37" y="9" width="13" height="46" rx="4" fill="currentColor"/>
+  </symbol>
+</svg>

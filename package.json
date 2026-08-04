@@ -17,7 +17,9 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "validate:assets": "pnpm --filter @gravity-run/asset-pipeline validate",
-    "clean": "pnpm -r --if-present clean"
+    "clean": "pnpm -r --if-present clean",
+    "assets:generate": "python3 tools/asset-authoring/generate_runtime_assets.py",
+    "assets:qa": "python3 tools/asset-authoring/qa_gravity_wells.py --repo ."
   },
   "devDependencies": {
     "@types/node": "^26.1.1",

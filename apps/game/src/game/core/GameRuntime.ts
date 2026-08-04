@@ -33,6 +33,7 @@ export class GameRuntime {
   #previousSnapshot: SimulationSnapshot;
   #currentSnapshot: SimulationSnapshot;
   #resizeObserver: ResizeObserver;
+  #started = false;
 
   constructor(options: GameRuntimeOptions) {
     this.#input = options.input;
@@ -60,10 +61,33 @@ export class GameRuntime {
   }
 
   start(): void {
-    this.#input.attach();
-    this.#resizeObserver.observe(document.documentElement);
-    this.#presentation.resize();
+    if (!this.#started) {
+      this.#started = true;
+      this.#input.attach();
+      this.#resizeObserver.observe(document.documentElement);
+      this.#presentation.resize();
+      this.#presentation.render(this.#currentSnapshot, this.#currentSnapshot, 0, 0);
+    }
     this.#loop.start();
+  }
+
+  pause(): void {
+    this.#loop.stop();
+    this.#input.clear();
+  }
+
+  resume(): void {
+    if (!this.#started) this.start();
+    else this.#loop.start();
+  }
+
+  reset(): void {
+    this.#input.clear();
+    this.#simulation.reset();
+    this.#previousSnapshot = this.#simulation.getSnapshot();
+    this.#currentSnapshot = this.#previousSnapshot;
+    this.#onSnapshot?.(this.#currentSnapshot);
+    this.#presentation.render(this.#currentSnapshot, this.#currentSnapshot, 0, 0);
   }
 
   dispose(): void {

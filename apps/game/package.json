@@ -10,16 +10,18 @@
     "typecheck": "tsc -b --pretty false",
     "test": "vitest run",
     "test:watch": "vitest",
-    "clean": "rm -rf dist .vite"
+    "clean": "rm -rf dist .vite",
+    "predev": "cd ../.. && python3 tools/asset-authoring/generate_runtime_assets.py",
+    "prebuild": "cd ../.. && python3 tools/asset-authoring/generate_runtime_assets.py"
   },
   "dependencies": {
     "@dimforge/rapier3d-compat": "^0.19.3",
     "@gravity-run/game-config": "workspace:*",
     "@gravity-run/shared": "workspace:*",
-    "postprocessing": "^6.37.7",
+    "postprocessing": "6.39.1",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
-    "three": "^0.185.1",
+    "three": "0.184.0",
     "zustand": "^5.0.14"
   },
   "devDependencies": {

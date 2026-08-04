@@ -40,28 +40,27 @@ export class InputBuffer {
     this.#target.removeEventListener('blur', this.#onBlur);
   }
 
+  clear(): void {
+    this.#events = [];
+    this.#held = false;
+  }
+
   consumeForTick(tick: number): TickInput {
     const events = this.#events;
     this.#events = [];
 
     let pressed = false;
     let released = false;
-
     for (const event of events) {
       if (event.kind === 'press') pressed = true;
       if (event.kind === 'release') released = true;
     }
 
-    return {
-      tick,
-      held: this.#held,
-      pressed,
-      released,
-    };
+    return { tick, held: this.#held, pressed, released };
   }
 
   readonly #onPress = (event: PointerEvent): void => {
-    if (event.button !== 0 || this.#held) return;
+    if (event.button !== 0 || this.#held || this.#isInterfaceTarget(event.target)) return;
     event.preventDefault();
     this.#held = true;
     this.#push('press');
@@ -76,6 +75,7 @@ export class InputBuffer {
 
   readonly #onKeyDown = (event: KeyboardEvent): void => {
     if ((event.code !== 'Space' && event.code !== 'Enter') || event.repeat || this.#held) return;
+    if (this.#isInterfaceTarget(document.activeElement)) return;
     event.preventDefault();
     this.#held = true;
     this.#push('press');
@@ -93,6 +93,10 @@ export class InputBuffer {
     this.#held = false;
     this.#push('release');
   };
+
+  #isInterfaceTarget(target: EventTarget | null): boolean {
+    return target instanceof Element && Boolean(target.closest('button, a, input, select, textarea, [data-ui-control]'));
+  }
 
   #push(kind: InputEventKind): void {
     this.#events.push({ kind, sequence: this.#sequence });

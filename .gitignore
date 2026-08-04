@@ -9,3 +9,11 @@ coverage/
 !.env.example
 content/exported/
 content/cache/
+
+# Deterministic generated runtime art. Rebuild with `pnpm assets:generate`.
+apps/game/public/assets/models/gravity-well-family.glb
+content/source/textures/gravity-wells/
+docs/qa/gravity-well-family-preview.png
+docs/qa/gravity-well-family-qa.json
+apps/game/public/assets/audio/*.wav
+docs/qa/audio-assets-qa.json

@@ -1,25 +1,14 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 220" role="img" aria-label="Gravity Run logo">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 250" role="img" aria-labelledby="title desc">
+  <title id="title">Gravity Run</title>
+  <desc id="desc">Italic white and amber Gravity Run wordmark encircled by orbital trails.</desc>
   <defs>
-    <linearGradient id="gold" x1="0" x2="1" y1="0" y2="1">
-      <stop offset="0%" stop-color="#FFD45E"/>
-      <stop offset="55%" stop-color="#F5B61B"/>
-      <stop offset="100%" stop-color="#F18A0A"/>
-    </linearGradient>
-    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
-      <feGaussianBlur stdDeviation="4" result="b"/>
-      <feColorMatrix in="b" type="matrix" values="1 0 0 0 0.96 0 1 0 0 0.70 0 0 1 0 0.10 0 0 0 0.8 0"/>
-      <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
-    </filter>
+    <linearGradient id="logo-gold" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffe477"/><stop offset="0.46" stop-color="#f7bc28"/><stop offset="1" stop-color="#ed8112"/></linearGradient>
+    <linearGradient id="logo-white" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset="0.72" stop-color="#e9edf3"/><stop offset="1" stop-color="#aeb8c7"/></linearGradient>
+    <filter id="logo-shadow" x="-20%" y="-30%" width="160%" height="180%"><feGaussianBlur in="SourceAlpha" stdDeviation="5" result="blur"/><feOffset dy="6" result="offset"/><feColorMatrix in="offset" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .62 0"/><feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    <filter id="gold-glow" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="7" result="b"/><feColorMatrix in="b" values="1 0 0 0 .95 0 1 0 0 .55 0 0 1 0 .05 0 0 0 .45 0"/><feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    <clipPath id="word-clip"><path d="M28 37h470v170H28z"/></clipPath>
   </defs>
-  <g transform="translate(8 6)">
-    <g fill="none" stroke="#F7F7F3" stroke-linecap="round" opacity="0.95">
-      <path d="M258 18c57 0 112 13 149 33 34 18 51 40 47 60-5 27-44 44-102 44" stroke-width="6"/>
-      <path d="M229 14c76-6 164 9 215 36 46 24 65 56 56 89-7 27-33 51-72 70" stroke-width="4" opacity="0.9"/>
-      <path d="M206 33c74-5 152 10 198 37 41 24 56 53 47 81-5 15-16 29-33 42" stroke-width="2.75" opacity="0.65"/>
-    </g>
-    <g transform="skewX(-12)">
-      <text x="10" y="88" fill="#F7F7F3" font-family="Inter, Arial, sans-serif" font-size="76" font-style="italic" font-weight="900" letter-spacing="-4">GRAVITY</text>
-      <text x="55" y="152" fill="url(#gold)" filter="url(#glow)" font-family="Inter, Arial, sans-serif" font-size="86" font-style="italic" font-weight="900" letter-spacing="-4">RUN</text>
-    </g>
-  </g>
+  <g fill="none" stroke-linecap="round" opacity=".96"><path d="M245 24c105-17 232-2 291 38 45 31 42 68-11 103-36 24-91 42-154 51" stroke="#f4f6fa" stroke-width="6"/><path d="M210 43c111-19 246-5 310 39 49 34 47 76-8 115-24 17-57 31-95 42" stroke="#f4f6fa" stroke-width="3.4" opacity=".72"/><path d="M286 12c76-6 157 6 207 31" stroke="#f4f6fa" stroke-width="2" opacity=".42"/><path d="M91 213c55 17 129 21 198 13" stroke="url(#logo-gold)" stroke-width="4" filter="url(#gold-glow)"/></g>
+  <g transform="translate(8 1) skewX(-11)" filter="url(#logo-shadow)"><text x="24" y="112" fill="url(#logo-white)" font-family="Arial Black, Inter, sans-serif" font-size="92" font-style="italic" font-weight="900" letter-spacing="-7">GRAVITY</text><text x="84" y="202" fill="url(#logo-gold)" font-family="Arial Black, Inter, sans-serif" font-size="112" font-style="italic" font-weight="900" letter-spacing="-8" filter="url(#gold-glow)">RUN</text></g>
+  <g clip-path="url(#word-clip)" opacity=".2"><path d="M34 67h430M42 86h430M62 160h305M70 182h305" stroke="#fff" stroke-width="2"/></g>
 </svg>
