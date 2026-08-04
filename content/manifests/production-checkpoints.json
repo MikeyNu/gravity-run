@@ -1,0 +1,61 @@
+{
+  "schemaVersion": 1,
+  "rule": "Exactly one tranche may be in_progress. A tranche may be marked complete only when every evidence path exists and every QA command succeeds.",
+  "tranches": [
+    {
+      "id": "deterministic-gameplay-core",
+      "status": "complete",
+      "evidence": [
+        "packages/simulation/src/simulation/GravityRunSimulation.ts",
+        "packages/simulation/src/procedural/courseGenerator.test.ts",
+        "docs/IMPLEMENTATION_GAP_AUDIT.md"
+      ]
+    },
+    {
+      "id": "rendering-and-camera-foundation",
+      "status": "complete",
+      "evidence": [
+        "apps/game/src/render/pipeline/PostProcessingPipeline.ts",
+        "apps/game/src/render/camera/SpringCameraRig.ts",
+        "docs/RENDERING_PIPELINE_QA.md"
+      ]
+    },
+    {
+      "id": "gravity-wells-gameplay-props-audio",
+      "status": "complete",
+      "evidence": [
+        "apps/game/public/assets/models/gravity-well-family.glb",
+        "apps/game/public/assets/models/gameplay-props.glb",
+        "docs/qa/gravity-well-family-qa.json",
+        "docs/qa/gameplay-props-qa.json",
+        "docs/qa/audio-assets-qa.json"
+      ]
+    },
+    {
+      "id": "modular-city-environment-kit",
+      "status": "in_progress",
+      "evidence": [
+        "apps/game/public/assets/models/city-environment-kit.glb",
+        "content/manifests/city-environment-kit.json",
+        "docs/qa/city-environment-kit-qa.json",
+        "docs/qa/city-environment-kit-preview.png",
+        "apps/game/src/render/assets/EnvironmentAssetLibrary.ts"
+      ]
+    },
+    {
+      "id": "courier-character-and-animation",
+      "status": "pending",
+      "evidence": []
+    },
+    {
+      "id": "session-product-and-online-services",
+      "status": "pending",
+      "evidence": []
+    },
+    {
+      "id": "release-certification",
+      "status": "pending",
+      "evidence": []
+    }
+  ]
+}
