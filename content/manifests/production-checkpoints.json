@@ -32,8 +32,14 @@
     },
     {
       "id": "gameplay-props",
-      "status": "in_progress",
-      "evidence": []
+      "status": "complete",
+      "evidence": [
+        "tools/asset-authoring/generate_gameplay_props.py",
+        "tools/asset-authoring/qa_gameplay_props.py",
+        "content/manifests/gameplay-props.json",
+        "apps/game/src/render/assets/GameplayAssetLibrary.ts",
+        "docs/GAMEPLAY_PROPS_QA.md"
+      ]
     },
     {
       "id": "modular-city-environment-kit",
@@ -48,7 +54,7 @@
     },
     {
       "id": "courier-character-and-animation",
-      "status": "pending",
+      "status": "in_progress",
       "evidence": []
     },
     {
