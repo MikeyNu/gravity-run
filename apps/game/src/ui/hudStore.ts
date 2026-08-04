@@ -1,4 +1,4 @@
-import type { SimulationSnapshot } from '../game/simulation/types';
+import type { SimulationSnapshot } from '@gravity-run/simulation';
 import type { QualityTier } from '../render/quality/detectQualityTier';
 import { create } from 'zustand';
 
