@@ -42,6 +42,9 @@ jobs:
       - name: Generate and audit runtime assets
         run: pnpm assets:generate
 
+      - name: Validate production checkpoints
+        run: python tools/validate_production_checkpoints.py --repo .
+
       - name: Typecheck
         run: pnpm typecheck
 
