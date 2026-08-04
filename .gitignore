@@ -17,3 +17,15 @@ docs/qa/gravity-well-family-preview.png
 docs/qa/gravity-well-family-qa.json
 apps/game/public/assets/audio/*.wav
 docs/qa/audio-assets-qa.json
+
+# Deterministic gameplay prop build outputs.
+apps/game/public/assets/models/gameplay-props.glb
+content/source/textures/gameplay-props/
+docs/qa/gameplay-props-preview.png
+docs/qa/gameplay-props-qa.json
+
+# Deterministic Shattered Vertical City environment build outputs.
+apps/game/public/assets/models/city-environment-kit.glb
+content/source/textures/city-environment/
+docs/qa/city-environment-kit-preview.png
+docs/qa/city-environment-kit-qa.json
