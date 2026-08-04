@@ -21,25 +21,29 @@
       ]
     },
     {
-      "id": "gravity-wells-gameplay-props-audio",
+      "id": "gravity-wells-and-audio",
       "status": "complete",
       "evidence": [
-        "apps/game/public/assets/models/gravity-well-family.glb",
-        "apps/game/public/assets/models/gameplay-props.glb",
-        "docs/qa/gravity-well-family-qa.json",
-        "docs/qa/gameplay-props-qa.json",
-        "docs/qa/audio-assets-qa.json"
+        "tools/asset-authoring/generate_gravity_wells.py",
+        "tools/asset-authoring/qa_gravity_wells.py",
+        "tools/asset-authoring/generate_audio_assets.py",
+        "tools/asset-authoring/qa_audio_assets.py"
       ]
     },
     {
-      "id": "modular-city-environment-kit",
+      "id": "gameplay-props",
       "status": "in_progress",
+      "evidence": []
+    },
+    {
+      "id": "modular-city-environment-kit",
+      "status": "complete",
       "evidence": [
-        "apps/game/public/assets/models/city-environment-kit.glb",
+        "tools/asset-authoring/generate_city_environment.py",
+        "tools/asset-authoring/qa_city_environment.py",
         "content/manifests/city-environment-kit.json",
-        "docs/qa/city-environment-kit-qa.json",
-        "docs/qa/city-environment-kit-preview.png",
-        "apps/game/src/render/assets/EnvironmentAssetLibrary.ts"
+        "apps/game/src/render/assets/EnvironmentAssetLibrary.ts",
+        "apps/game/src/render/scene/EnvironmentSceneController.ts"
       ]
     },
     {

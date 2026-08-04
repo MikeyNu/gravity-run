@@ -9,7 +9,23 @@
       "runtime": "apps/game/public/assets/models/gravity-well-family.glb",
       "requiredForCoreLoad": true,
       "license": "Project-owned original procedural asset",
-      "budget": { "transferKilobytes": 3400, "gpuMegabytes": 28 }
+      "budget": {
+        "transferKilobytes": 3400,
+        "gpuMegabytes": 28
+      }
+    },
+    {
+      "id": "environment/city-environment-kit-v1",
+      "type": "model",
+      "source": "tools/asset-authoring/generate_city_environment.py",
+      "generator": "tools/asset-authoring/generate_city_environment.py",
+      "runtime": "apps/game/public/assets/models/city-environment-kit.glb",
+      "requiredForCoreLoad": false,
+      "license": "Project-owned original procedural asset",
+      "budget": {
+        "transferKilobytes": 7600,
+        "gpuMegabytes": 52
+      }
     },
     {
       "id": "ui/gravity-run-logo",
@@ -18,7 +34,10 @@
       "runtime": "apps/game/public/brand/gravity-run-logo.svg",
       "requiredForCoreLoad": false,
       "license": "Project-owned original vector asset",
-      "budget": { "transferKilobytes": 18, "gpuMegabytes": 1 }
+      "budget": {
+        "transferKilobytes": 18,
+        "gpuMegabytes": 1
+      }
     },
     {
       "id": "ui/gravity-character-roster",
@@ -27,7 +46,10 @@
       "runtime": "apps/game/public/ui/characters/gravity-characters.svg",
       "requiredForCoreLoad": false,
       "license": "Project-owned original vector asset",
-      "budget": { "transferKilobytes": 34, "gpuMegabytes": 2 }
+      "budget": {
+        "transferKilobytes": 34,
+        "gpuMegabytes": 2
+      }
     },
     {
       "id": "ui/gravity-flow-cards",
@@ -36,7 +58,10 @@
       "runtime": "apps/game/public/ui/flow/gravity-flow-cards.svg",
       "requiredForCoreLoad": false,
       "license": "Project-owned original vector asset",
-      "budget": { "transferKilobytes": 30, "gpuMegabytes": 2 }
+      "budget": {
+        "transferKilobytes": 30,
+        "gpuMegabytes": 2
+      }
     },
     {
       "id": "audio/gameplay-feedback-v1",
@@ -46,7 +71,9 @@
       "runtime": "apps/game/public/assets/audio/",
       "requiredForCoreLoad": false,
       "license": "Project-owned original procedural audio",
-      "budget": { "transferKilobytes": 300 }
+      "budget": {
+        "transferKilobytes": 300
+      }
     }
   ]
 }

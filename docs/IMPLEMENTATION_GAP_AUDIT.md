@@ -25,8 +25,8 @@
 | Rendering pipeline | Partial | Tiered composer, HDR buffers, thresholded bloom, SMAA, final AgX, fog and adaptive resolution | Contact shadows, probes, material audit, GPU profiling and visual-regression certification. |
 | Gravity-well assets | Partial | Four deterministic variants, three LODs, UVs, PBR maps and QA | Art-direct silhouette refinement, KTX2 compression, meshopt pass and in-engine lighting review. |
 | Courier character | Missing | Procedural capsule proxy only | Final model, topology, UVs, materials, rig, sockets, IK and animation set. |
-| Environment kit | Missing | Floor and box proxies only | Modular city kit, landmarks, midground/distant sets, collision and occlusion proxies, trim/decal library. |
-| Hazards and pickups | Partial | Box and octahedron proxies | Authored spinner, blades, debris, gates, fragments and state-specific VFX. |
+| Environment kit | Implemented | Deterministic nine-family city kit, three LODs, UVs, shared trim/decal textures, collision/occlusion proxies, route-safe streamed placement, quality-tiered LOD, fallback transition and disposal tests | KTX2/meshopt packaging, lightmap refinement and in-engine visual certification remain release work. |
+| Hazards and pickups | Partial | Deterministic GLB family for spire, blade, debris, collapse gate and gravity fragment; three LODs, UVs, PBR maps, collision/occlusion proxies and runtime loading | Add moving crusher, sliding wall, energy barrier, laser sweep and per-state anticipation/cooldown VFX. Moving hazards still require authoritative swept collision. |
 | VFX | Partial | Tension-aware ribbon tether, deterministic trail, speed lines, and pooled release/collect/near-miss/failure bursts | Collapse field refinement, scrape/impact variants and authored environmental particles. |
 | Audio | Partial | Deterministic UI, tether, release, fragment, near-miss and failure assets with Web Audio routing | Music states, ambience, broader variation pools, mix snapshots and device listening certification. |
 | UI shell | Partial | Concept-matched menu, HUD, pause and settings | Tutorial progression, results detail, character selection, daily flow, leaderboard and responsive visual QA. |
@@ -40,7 +40,7 @@
 
 The remaining work must be delivered in dependency order:
 
-1. **Asset and rendering foundation:** validated model pipeline, runtime loaders, post-processing and environment module contract.
+1. **Asset and rendering foundation:** validated model pipeline, runtime loaders, post-processing, gameplay-prop family and environment module contract.
 2. **Playable content:** Courier, authored city modules, hazards, pickups, VFX and audio.
 3. **Session product:** complete menu/tutorial/results/settings/character/daily flows.
 4. **Competitive services:** replay reconstruction, daily manifests, leaderboard and anti-cheat.
@@ -56,3 +56,7 @@ The project is not “complete” when a feature merely has a placeholder. Compl
 4. mobile-tier behavior;
 5. documented failure/fallback behavior;
 6. architecture exit criterion checked off.
+
+### Environment completion update
+
+The modular Shattered Vertical City environment gap is closed. The runtime now streams authored architecture through a dedicated environment asset library and controller, while deterministic source generation and structural QA are available from a fresh clone. The next unresolved visual-production dependency is the authored gameplay-prop family for hazards and fragments.

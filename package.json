@@ -19,7 +19,7 @@
     "validate:assets": "pnpm --filter @gravity-run/asset-pipeline validate",
     "clean": "pnpm -r --if-present clean",
     "assets:generate": "python3 tools/asset-authoring/generate_runtime_assets.py",
-    "assets:qa": "python3 tools/asset-authoring/qa_gravity_wells.py --repo ."
+    "assets:qa": "python3 tools/asset-authoring/qa_gravity_wells.py --repo . && python3 tools/asset-authoring/qa_audio_assets.py --repo . && python3 tools/asset-authoring/qa_gameplay_props.py --repo . && python3 tools/asset-authoring/qa_city_environment.py --repo . && python3 tools/validate_production_checkpoints.py --repo ."
   },
   "devDependencies": {
     "@types/node": "^26.1.1",
