@@ -1,4 +1,8 @@
-import type { SimulationSnapshot } from '../simulation/types';
+import type {
+  RunConfiguration,
+  SimulationSnapshot,
+} from '@gravity-run/simulation';
+import type { ReplaySubmission } from '@gravity-run/shared';
 import type { InputBuffer } from '../input/InputBuffer';
 import { FixedStepLoop } from './FixedStepLoop';
 
@@ -6,6 +10,8 @@ export interface SimulationPort {
   step(fixedStepSeconds: number, input: ReturnType<InputBuffer['consumeForTick']>): void;
   getSnapshot(): SimulationSnapshot;
   reset(): void;
+  configure?(configuration: RunConfiguration): void;
+  createReplaySubmission?(): ReplaySubmission;
 }
 
 export interface PresentationPort {
@@ -81,13 +87,18 @@ export class GameRuntime {
     else this.#loop.start();
   }
 
-  reset(): void {
+  reset(configuration?: RunConfiguration): void {
     this.#input.clear();
-    this.#simulation.reset();
+    if (configuration && this.#simulation.configure) this.#simulation.configure(configuration);
+    else this.#simulation.reset();
     this.#previousSnapshot = this.#simulation.getSnapshot();
     this.#currentSnapshot = this.#previousSnapshot;
     this.#onSnapshot?.(this.#currentSnapshot);
     this.#presentation.render(this.#currentSnapshot, this.#currentSnapshot, 0, 0);
+  }
+
+  createReplaySubmission(): ReplaySubmission | null {
+    return this.#simulation.createReplaySubmission?.() ?? null;
   }
 
   dispose(): void {
